@@ -8,13 +8,35 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <cassert>
-
+#include <dbghelp.h>
+#include <strsafe.h>
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
+#pragma comment(lib,"Dbghelp.lib")
 
+static LONG WINAPI ExportDump(EXCEPTION_POINTERS* exception)
+{
+	SYSTEMTIME time;
+	GetLocalTime(&time);
+	wchar_t filePath[MAX_PATH] = { 0 };
+	CreateDirectory(L"./Dumps", nullptr);
+	StringCchPrintfW(filePath, MAX_PATH, L"./Dumps/%04d-%02d%02d-%02d%02d.dmp", time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute);
+	HANDLE dumpFileHandle = CreateFile(filePath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0);
+	//processId(このexeのId)とクラッシュ(例外)の発生したthreadIdを取得
+	DWORD processId = GetCurrentProcessId();
+	DWORD threadId = GetCurrentThreadId();
+	//設定情報を入力
+	MINIDUMP_EXCEPTION_INFORMATION minidumpInformation{ 0 };
+	minidumpInformation.ThreadId = threadId;
+	minidumpInformation.ExceptionPointers = exception;
+	minidumpInformation.ClientPointers = TRUE;
+	//Dumpを入力。MiniDumpNormalは最低限の情報を出力するフラグ
+	MiniDumpWriteDump(GetCurrentProcess(), processId, dumpFileHandle, MiniDumpNormal, &minidumpInformation, nullptr, nullptr);
+	//他に関連づけられているSEH例外ハンドラがあれば実行。通常はプロセスを終了する
 
-
+	return EXCEPTION_EXECUTE_HANDLER;
+}
 
 void Log(std::ostream& os, const std::string& message)
 {
@@ -56,6 +78,8 @@ void Log(const std::string& message)
 	OutputDebugStringA(message.c_str());
 }
 
+
+
 //ウィンドウプロシージャ
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg,
 	WPARAM wparam, LPARAM lparam)
@@ -78,9 +102,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg,
 //Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
+
+	SetUnhandledExceptionFilter(ExportDump);
+
 	//log出力用のフォルダ「logs」を作成
 	std::filesystem::create_directory("logs");
-
 
 	//ここからファイルを作成し、ofstreamを取得する
 	//現時刻を取得
@@ -96,6 +122,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	std::string logFilePath = std::format("logs/") + dateString + ".log";
 	//ファイルを使って書き込み準備
 	std::ofstream logStream(logFilePath);
+
+	//uint32_t* p = nullptr;
+	//*p = 100;
 
 
 
@@ -173,7 +202,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		if (!(adapterDesc.Flags & DXGI_ADAPTER_FLAG3_SOFTWARE))
 		{
 			//採用したアダプタの情報をログに出力。wstringのほうなので注意
-			Log(logStream, ConvertString( std::format(L"Use Adapater;{}\n", adapterDesc.Description)));
+			Log(logStream, ConvertString(std::format(L"Use Adapater;{}\n", adapterDesc.Description)));
 			break;
 		}
 		useAdapter = nullptr;
@@ -206,7 +235,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	assert(device != nullptr);
 	Log("Complete create D3D12Device!!!\n");
 
-
+	//コマンドキューを生成する
+	ID3D12CommandQueue* commandQueue = nullptr;
+	D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
+	hr = device->CreateCommandQueue(&commandQueueDesc,
+	IID_PPV_ARGS(&commandQueue));
+	//コマンドキューの生成がうまくいかなかったので起動できない
+	assert(SUCCEEDED(hr));
 
 
 
