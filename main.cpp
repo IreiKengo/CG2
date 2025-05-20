@@ -681,6 +681,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferView);//VBVを設定
 			//形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			//マテリアルCBufferの場所を設定
+			commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 			//描画！（DrawCall/ドローコール）。３頂点で１つのインスタンス。インスタンスについては今後
 			commandList->DrawInstanced(3, 1, 0, 0);
 
@@ -734,6 +736,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	CloseHandle(fenceEvent);
 
+	materialResource->Release();
 	vertexResource->Release();
 	graphicsPipelineState->Release();
 	signatureBlob->Release();
