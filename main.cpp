@@ -1259,6 +1259,55 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
 
+	//球
+	//分割数
+	uint32_t kSubdivision = 16;
+	//分割数(縦)×分割数(横)×６(頂点数)
+	uint32_t sphereVertexNum = kSubdivision * kSubdivision * 6;
+
+	//Sphere用の頂点リソースを作る。
+	ID3D12Resource* vertexResourceSphere = CreateBufferResource(device, sizeof(VertexData) * sphereVertexNum);
+
+	//頂点バッファビューを作成する
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSphere{};
+	//リソースの先頭のアドレスから使う
+	vertexBufferViewSphere.BufferLocation = vertexResourceSphere->GetGPUVirtualAddress();
+	//使用するリソースのサイズは頂点6つ分のサイズ
+	vertexBufferViewSphere.SizeInBytes = sizeof(VertexData) * sphereVertexNum;
+	//１頂点当たりのサイズ
+	vertexBufferViewSphere.StrideInBytes = sizeof(VertexData);
+
+	//頂点データの設定
+	VertexData* vertexDataSphere = nullptr;
+	vertexResourceSphere->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSphere));
+
+	//経度分割1つ分の角度
+	const float kLonEvery = std::numbers::pi_v<float> *2.0f / float(kSubdivision);
+	//緯度分割1つ分の角度
+	const float kLatEvery = std::numbers::pi_v<float> / float(kSubdivision);
+
+	//緯度の方向に分割
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex)
+	{
+		float lat = -std::numbers::pi_v<float> / 2.0f + kLatEvery * latIndex;//緯度
+		//経度の方向に分割しながら線を引く
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex)
+		{
+			float lon = lonIndex * kLonEvery;//経度
+
+			VertexData vertA = {
+				{
+				std::cosf(lat) * std::cosf(lon),
+				std::sinf(lat),
+				std::cosf(lat) * std::sinf(lon),
+				1.0f
+			},
+			{
+				float(lonIndex) / float(kSubdivision),
+				1.0f - float(latIndex) / float(kSubdivision)
+			}
+			};
+
 			VertexData vertB = {
 				{
 					std::cosf(lat + kLatEvery) * std::cosf(lon),
@@ -1300,13 +1349,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 			uint32_t start = (latIndex * kSubdivision + lonIndex) * 6;
 			//頂点にデータを入力する
-			vertexDataSphere[start+0] = vertA;
-			vertexDataSphere[start+1] = vertB;
-			vertexDataSphere[start+2] = vertC;
+			vertexDataSphere[start + 0] = vertA;
+			vertexDataSphere[start + 1] = vertB;
+			vertexDataSphere[start + 2] = vertC;
 
-			vertexDataSphere[start+3] = vertC;
-			vertexDataSphere[start+4] = vertB;
-			vertexDataSphere[start+5] = vertD;
+			vertexDataSphere[start + 3] = vertC;
+			vertexDataSphere[start + 4] = vertB;
+			vertexDataSphere[start + 5] = vertD;
 
 		}
 	}
@@ -1350,7 +1399,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			*transformationMatrixDataSprite = worldViewProjectionMatrixSprite;
 
 
-		
+
 
 			ImGui_ImplDX12_NewFrame();
 			ImGui_ImplWin32_NewFrame();
@@ -1361,12 +1410,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			ImGui::DragFloat3("TranslateSprite", &transformSprite.translate.x);
 			ImGui::DragFloat3("CameraTransform", &cameraTransform.translate.x);
 			ImGui::End();
-			
-			
+
 
 
 			//開発用UIの処理。実際に開発用のUIを出す場合はここをゲーム固有の処理に書き換える
 			ImGui::ShowDemoWindow();
+
 
 			//ImGuiの内部コマンドを生成する
 			ImGui::Render();
