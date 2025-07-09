@@ -53,6 +53,11 @@ struct Matrix4x4
 	float m[4][4];
 };
 
+struct Matrix3x3
+{
+	float m[3][3];
+};
+
 struct Transform
 {
 	Vector3 scale;
@@ -70,6 +75,8 @@ struct Material
 {
 	Vector4 color;
 	int32_t enableLighting;
+	float paddibg[3];
+	Matrix4x4 uvTransform;
 };
 
 struct TransformationMatrix
@@ -1145,6 +1152,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//今回は赤を書き込んでいる
 	materialData->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	materialData->enableLighting = true;
+	materialData->uvTransform = MakeIdentity4x4();
 
 	//Transform変数を作る
 	Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
@@ -1301,6 +1309,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	materialDataSprite->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	//SpriteはLightingしないのでfalseを設定する
 	materialDataSprite->enableLighting = false;
+	materialDataSprite->uvTransform = MakeIdentity4x4();
 
 	//頂点バッファビューを作成する
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite{};
@@ -1340,7 +1349,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	transformationMatrixDataSprite->WVP = MakeIdentity4x4();
 	transformationMatrixDataSprite->World = MakeAffineMatrix(transformSprite.scale, transformSprite.rotate, transformSprite.translate);
 
-
+	Transform uvTransformSprite
+	{
+		{1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f},
+	};
 
 	//インデックス用リソース
 	ID3D12Resource* indexResourceSprite = CreateBufferResource(device, sizeof(uint32_t) * 6);
@@ -1553,7 +1565,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			transformationDataSphere->WVP = worldViewProjectionMatrixSphere;
 			transformationDataSphere->World = worldMatrixSphere;
 
-
+			Matrix4x4 uvTransformMatrix = MakeScaleMatrix(uvTransformSprite.scale);
+			uvTransformMatrix = Multiply(uvTransformMatrix, MakeRotateZMatrix(uvTransformSprite.rotate.z));
+			uvTransformMatrix = Multiply(uvTransformMatrix, MakeTranslateMatrix(uvTransformSprite.translate));
+			materialDataSprite->uvTransform = uvTransformMatrix;
 
 			ImGui_ImplDX12_NewFrame();
 			ImGui_ImplWin32_NewFrame();
@@ -1573,6 +1588,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			ImGui::SliderFloat3("LightDirection", &directionalLightData->direction.x, -1.0f, 1.0f);
 			ImGui::DragFloat("intensity", &directionalLightData->intensity);
 			ImGui::Checkbox("useLighting", &useLighting);
+
+			ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
+			ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
+			ImGui::SliderAngle("UVRotate", &uvTransformSprite.rotate.z);
+
 			ImGui::End();
 
 			useLighting ? materialData->enableLighting = true : materialData->enableLighting = false;
