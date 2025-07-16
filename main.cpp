@@ -93,10 +93,18 @@ struct DirectionalLight
 	float intensity; //輝度
 };
 
+struct MaterialData
+{
+	std::string textureFilePath;
+};
+
 struct ModelData
 {
 	std::vector<VertexData> vertices;
+	MaterialData material;
 };
+
+
 
 #pragma region 関数群
 static LONG WINAPI ExportDump(EXCEPTION_POINTERS* exception)
@@ -723,6 +731,35 @@ D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(ID3D12DescriptorHeap* descrip
 	return handleGPU;
 }
 
+MaterialData LoadMaterialTempleFile(const std::string& directoryPath, const std::string& filename)
+{
+	//1.中で必要となる変数の宣言
+	MaterialData materialData;//構築するMaterialData
+	std::string line;//ファイルから読んだ1行を格納するもの
+
+	//2.ファイルを開く
+	std::ifstream file(directoryPath + "/" + filename);//ファイルを開く
+	assert(file.is_open());//とりあえず開けなかったら止める
+	//3.実際にファイルを読み込み、MaterialDataを構築していく
+	while (std::getline(file, line))
+	{
+		std::string identifier;
+		std::istringstream s(line);
+		s >> identifier;
+
+		//identifierに応じた処理
+		if (identifier == "map_Kd")
+		{
+			std::string textureFilename;
+			s >> textureFilename;
+			//連結してファイルパスにする
+			materialData.textureFilePath = directoryPath + "/" + textureFilename;
+		}
+	}
+	//4.MaterialDataを返す
+	return materialData;
+}
+
 ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename)
 {
 	//1.中で必要となる変数の宣言
@@ -749,16 +786,19 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 			Vector4 position;
 			s >> position.x >> position.y >> position.z;
 			position.w = 1.0f;
+			position.x *= -1.0f;
 			positions.push_back(position);
 		} else if (identifier == "vt")
 		{
 			Vector2 texCoord;
 			s >> texCoord.x >> texCoord.y;
+			texCoord.y = 1.0f - texCoord.y;
 			texCoords.push_back(texCoord);
 		} else if (identifier == "vn")
 		{
 			Vector3 normal;
 			s >> normal.x >> normal.y >> normal.z;
+			normal.x *= -1.0f;
 			normals.push_back(normal);
 		} else if (identifier == "f")//三角形を作る
 		{
@@ -781,8 +821,6 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 				Vector4 position = positions[elementIndices[0] - 1];
 				Vector2 texCoord = texCoords[elementIndices[1] - 1];
 				Vector3 normal = normals[elementIndices[2] - 1];
-				/*VertexData vertex = { position,texCoord,normal };
-				modelData.vertices.push_back(vertex);*/
 				triangle[faceVertex] = { position,texCoord,normal };
 			}
 			//頂点を逆順で登録することで、回り順を逆にする
@@ -790,12 +828,21 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 			modelData.vertices.push_back(triangle[1]);
 			modelData.vertices.push_back(triangle[0]);
 
+		} else if (identifier == "mtllib")
+		{
+			//materialTemplateLibraryファイルの名前を取得する
+			std::string materialFilename;
+			s >> materialFilename;
+			//基本的にobjファイルと同一階層にmtlは存在させるので、ディレクトリ名とファイル名を渡す
+			modelData.material = LoadMaterialTempleFile(directoryPath, materialFilename);
 		}
 
 	}
 	//4.ModelDataを返す
 	return modelData;
 }
+
+
 
 #pragma endregion
 
@@ -1471,7 +1518,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//uint32_t sphereVertexNum = (kSubdivision + 1) * (kSubdivision + 1);
 
 	//モデル読み込み
-	ModelData modelData = LoadObjFile("resources", "plane.obj");
+	ModelData modelData = LoadObjFile("resources", "axis.obj");
 
 	//Sphere用の頂点リソースを作る。
 	ID3D12Resource* vertexResourceSphere = CreateBufferResource(device, sizeof(VertexData) * modelData.vertices.size());
@@ -1640,7 +1687,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			transformationMatrixDataSprite->WVP = worldViewProjectionMatrixSprite;
 			transformationMatrixDataSprite->World = worldMatrixSprite;
 
-			transformSphere.rotate.y += 0.03f;
+			//transformSphere.rotate.y += 0.03f;
 			//Sphere用のWorldViewProjectionMatrixを作る
 			Matrix4x4 worldMatrixSphere = MakeAffineMatrix(transformSphere.scale, transformSphere.rotate, transformSphere.translate);
 			Matrix4x4 cameraMatrixSphere = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
@@ -1660,19 +1707,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			ImGui::NewFrame();
 
 			ImGui::Begin("Settings");
-			ImGui::DragFloat3("CameraTransrotate", &cameraTransform.rotate.x);
-			ImGui::DragFloat3("CameraTransscale", &cameraTransform.scale.x);
 			ImGui::DragFloat3("CameraTranslate", &cameraTransform.translate.x);
+			ImGui::SliderAngle("CameraTransrotateX", &cameraTransform.rotate.x);
+			ImGui::SliderAngle("CameraTransrotateY", &cameraTransform.rotate.y);
+			ImGui::SliderAngle("CameraTransrotateZ", &cameraTransform.rotate.z);
+
+			ImGui::SliderAngle("SphereTransrotateX", &transformSphere.rotate.x);
+			ImGui::SliderAngle("SphereTransrotateY", &transformSphere.rotate.y);
+			ImGui::SliderAngle("SphereTransrotateZ", &transformSphere.rotate.z);
 
 
 			ImGui::ColorEdit4("Color", &(*materialData).color.x);
-			ImGui::DragFloat3("TranslateSprite", &transformSprite.translate.x);
-			ImGui::Checkbox("useMonsterBall", &useMonsterBall);
 
+			ImGui::Checkbox("useLighting", &useLighting);
 			ImGui::ColorEdit4("LightColor", &(*directionalLightData).color.x);
 			ImGui::SliderFloat3("LightDirection", &directionalLightData->direction.x, -1.0f, 1.0f);
 			ImGui::DragFloat("intensity", &directionalLightData->intensity);
-			ImGui::Checkbox("useLighting", &useLighting);
+
+			ImGui::DragFloat3("TranslateSprite", &transformSprite.translate.x);
+			ImGui::Checkbox("useMonsterBall", &useMonsterBall);
 
 			ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
 			ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
@@ -1748,7 +1801,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			//commandList->IASetIndexBuffer(&indexBufferViewSphere);
 			//TransformationMatrixCBufferの場所を設定
 			commandList->SetGraphicsRootConstantBufferView(1, transformationResourcesSphere->GetGPUVirtualAddress());
-			commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
+			//commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
+			DirectX::ScratchImage mipImages2 = LoadTexture(modelData.material.textureFilePath);
 			//球の描画
 			commandList->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
 
@@ -1763,7 +1817,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourcesSprite->GetGPUVirtualAddress());
 			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 			//描画！（DrawCall/ドローコール）
-			commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+			//commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
 			//実際のcommandListのImGuiの描画コマンドを積む
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
