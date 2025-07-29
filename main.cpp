@@ -23,6 +23,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 #include <numbers>
 #include <wrl.h>
 #include <xaudio2.h>
+#define DIRECTINPUT_VESION 0x0800//DiewctInputのバージョン指定
+#include <dinput.h>
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -30,7 +32,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 #pragma comment(lib,"dxguid.lib")
 #pragma comment(lib,"dxcompiler.lib")
 #pragma comment(lib,"xaudio2.lib")
-
+#pragma comment(lib,"dinput8.lib")
+#pragma comment(lib,"dxguid.lib")
 
 
 
@@ -892,10 +895,8 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 
 SoundData SoundLoadWavw(const char* filename)
 {
-	HRESULT result;
-
 	//①ファイルオープン
-	
+
 	//ファイル入力ストリームのインスタンス
 	std::ifstream file;
 	//.wavファイルをバイナリモードで開く
@@ -904,7 +905,7 @@ SoundData SoundLoadWavw(const char* filename)
 	assert(file.is_open());
 
 	//②.wavデータ読み込み
-	
+
 	//RIFFヘッダーの読み込み
 	RiffHeader riff;
 	file.read((char*)&riff, sizeof(riff));
@@ -923,7 +924,7 @@ SoundData SoundLoadWavw(const char* filename)
 	FormatChunk format = {};
 	//チャンクヘッダーの確認
 	file.read((char*)&format, sizeof(ChunkHeader));
-	if (strncmp(format.chunk.id, "fmt", 4) != 0)
+	if (strncmp(format.chunk.id, "fmt ", 4) != 0)
 	{
 		assert(0);
 	}
@@ -954,7 +955,7 @@ SoundData SoundLoadWavw(const char* filename)
 	file.read(pBuffer, data.size);
 
 	//③ファイルクローズ
-	
+
 	//Waveファイルを閉じる
 	file.close();
 
@@ -1091,7 +1092,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		)
 	);
 
-
+	HRESULT result;
 
 #ifdef _DEBUG
 	Microsoft::WRL::ComPtr<ID3D12Debug1> debugController = nullptr;
@@ -1105,6 +1106,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #endif
 
+#pragma region DirectInputの初期化
+	IDirectInput8* directInput = nullptr;
+	result = DirectInput8Create(
+		wc.hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8,
+		(void**)&directInput, nullptr);
+
+	//キーボードデバイスの生成
+	IDirectInputDevice8* keyboard = nullptr;
+	result = directInput->CreateDevice(GUID_SysKeyboard, &keyboard, NULL);
+	assert(SUCCEEDED(result));
+
+	//入力データ形式のセット
+	result = keyboard->SetDataFormat(&c_dfDIKeyboard);//標準形式
+	assert(SUCCEEDED(result));
+
+	//排他制御レブルのセット
+	result = keyboard->SetCooperativeLevel(
+		hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
+	assert(SUCCEEDED(result));
+#pragma endregion
 
 	//DXGIファクトリーの生成
 	Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory = nullptr;
@@ -1828,7 +1849,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	IXAudio2MasteringVoice* masterVoice;
 
 	//XAudioエンジンのインデックスを生成
-	HRESULT result;
+
 	result = XAudio2Create(&xAudio2, 0, XAUDIO2_DEFAULT_PROCESSOR);
 	assert(SUCCEEDED(result));
 
@@ -1843,6 +1864,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	SoundPlayWave(xAudio2.Get(), soundData1);
 #pragma endregion
 
+	//キーボード情報の取得開始
+	keyboard->Acquire();
+
+	//全キーの入力状態を取得する
+	BYTE key[256] = {};
+	
+
 	MSG msg{};
 	//ウィンドウの×ボタンが押されるまでループ
 	while (msg.message != WM_QUIT)
@@ -1854,6 +1882,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			DispatchMessage(&msg);
 		} else {
 			//ゲーム処理
+
+			keyboard->GetDeviceState(sizeof(key), key);
+
+			//数字の0キーが押されていたら
+			if (key[DIK_0])
+			{
+				OutputDebugStringA("Hit 0\n");//出力ウィンドウに「Hit 0」と表示
+			}
+			
 
 			//transform.rotate.y += 0.03f;
 			//三角形用のWVPMatrixの作成
@@ -2061,7 +2098,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
-	
+
 	//音声データ解放
 	SoundUnload(&soundData1);
 
