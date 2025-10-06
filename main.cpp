@@ -681,6 +681,7 @@ DirectX::ScratchImage LoadTexture(const std::string& filePath)
 	return mipImages;
 }
 
+
 Microsoft::WRL::ComPtr<ID3D12Resource> CreateTextureResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const DirectX::TexMetadata& metadata)
 {
 	//1.metadataを基にResourceの設定
@@ -1403,11 +1404,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 
 	//Shaderをコンパイルする
-	Microsoft::WRL::ComPtr<IDxcBlob> vertexShaderBlob = CompileShader(L"Object3D.VS.hlsl",
+	Microsoft::WRL::ComPtr<IDxcBlob> vertexShaderBlob = CompileShader(L"resources/shaders/Object3D.VS.hlsl",
 		L"vs_6_0", dxcUtils, dxcCompiler, includeHandler, logStream);
 	assert(vertexShaderBlob != nullptr);
 
-	Microsoft::WRL::ComPtr<IDxcBlob> pixelShaderBlob = CompileShader(L"Object3D.PS.hlsl",
+	Microsoft::WRL::ComPtr<IDxcBlob> pixelShaderBlob = CompileShader(L"resources/shaders/Object3D.PS.hlsl",
 		L"ps_6_0", dxcUtils, dxcCompiler, includeHandler, logStream);
 	assert(pixelShaderBlob != nullptr);
 
@@ -1703,7 +1704,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//uint32_t sphereVertexNum = (kSubdivision + 1) * (kSubdivision + 1);
 
 	//モデル読み込み
-	ModelData modelData = LoadObjFile("resources", "axis.obj");
+	ModelData modelData = LoadObjFile("resources","axis.obj");
 
 	//Sphere用の頂点リソースを作る。
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResourceSphere = CreateBufferResource(device, sizeof(VertexData) * modelData.vertices.size());
