@@ -164,6 +164,7 @@
       <ExternalWarningLevel>Level4</ExternalWarningLevel>
       <GuardEHContMetadata>true</GuardEHContMetadata>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
