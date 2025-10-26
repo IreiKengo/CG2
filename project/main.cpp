@@ -1861,8 +1861,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//音声読み込み
 	SoundData soundData1 = SoundLoadWavw("resources/fanfare.wav");
 
-	//音声再生
-	SoundPlayWave(xAudio2.Get(), soundData1);
+	
 #pragma endregion
 
 	//キーボード情報の取得開始
@@ -1889,8 +1888,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			//数字の0キーが押されていたら
 			if (key[DIK_0])
 			{
-				OutputDebugStringA("Hit 0\n");//出力ウィンドウに「Hit 0」と表示
+				//音声再生
+				SoundPlayWave(xAudio2.Get(), soundData1);
 			}
+
 			
 
 			//transform.rotate.y += 0.03f;
@@ -2100,6 +2101,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 
+	//XAudio2解放
+	xAudio2.Reset();
 	//音声データ解放
 	SoundUnload(&soundData1);
 
