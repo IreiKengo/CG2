@@ -7,7 +7,7 @@ one:
 
 env:
 #リポジトリのルートディレクトリを基点としたソリューションファイルのパス
-SOLUTION_FILE_PATH: "C:\Users\kenyo\Desktop\CG\CG2\project\CG2.sln"
+SOLUTION_FILE_PATH: project/CG2.sln
 # VIsual Studio の構成(Debug / Release)
 CONFIGURATION: Debug
 
