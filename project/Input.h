@@ -22,10 +22,23 @@ public:
 	//更新
 	void Update();
 
+	//押されているか
+	bool PushKey(BYTE keyNumber);
+
+	//トリガーか
+	bool TriggerKey(BYTE keyNumber);
+
 private:
 
 	//キーボードのデバイス
 	ComPtr<IDirectInputDevice8> keyboard;
+
+	//全キーの状態
+	BYTE key[256] = {};
+	//前回の全キーの状態
+	BYTE keyPre[256] = {};
+	//DirectInputのインスタンス
+	ComPtr<IDirectInput8> directInput;
 
 
 };
