@@ -23,8 +23,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 #include <numbers>
 #include <wrl.h>
 #include <xaudio2.h>
-#define DIRECTINPUT_VESION 0x0800//DiewctInputのバージョン指定
-#include <dinput.h>
+
+#include "Input.h"
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -32,8 +32,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 #pragma comment(lib,"dxguid.lib")
 #pragma comment(lib,"dxcompiler.lib")
 #pragma comment(lib,"xaudio2.lib")
-#pragma comment(lib,"dinput8.lib")
-#pragma comment(lib,"dxguid.lib")
+
 
 
 
@@ -1108,24 +1107,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif
 
 #pragma region DirectInputの初期化
-	IDirectInput8* directInput = nullptr;
-	result = DirectInput8Create(
-		wc.hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8,
-		(void**)&directInput, nullptr);
+	
+	Input* input = nullptr;
 
-	//キーボードデバイスの生成
-	IDirectInputDevice8* keyboard = nullptr;
-	result = directInput->CreateDevice(GUID_SysKeyboard, &keyboard, NULL);
-	assert(SUCCEEDED(result));
+	//入力の初期化
+	input = new Input();
+	input->Initialize(wc.hInstance, hwnd);
 
-	//入力データ形式のセット
-	result = keyboard->SetDataFormat(&c_dfDIKeyboard);//標準形式
-	assert(SUCCEEDED(result));
-
-	//排他制御レブルのセット
-	result = keyboard->SetCooperativeLevel(
-		hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
-	assert(SUCCEEDED(result));
 #pragma endregion
 
 	//DXGIファクトリーの生成
@@ -2099,6 +2087,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	CloseHandle(fenceEvent);
 
 
+
+
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
@@ -2107,6 +2097,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	xAudio2.Reset();
 	//音声データ解放
 	SoundUnload(&soundData1);
+
+	//入力解放
+	delete input;
 
 
 	CloseWindow(hwnd);
