@@ -21,7 +21,6 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 #include "externals/DirectXTex/d3dx12.h"
 #include "vector"
 #include <numbers>
-#include <wrl.h>
 #include <xaudio2.h>
 
 #include "Input.h"
@@ -29,7 +28,6 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib,"Dbghelp.lib")
-#pragma comment(lib,"dxguid.lib")
 #pragma comment(lib,"dxcompiler.lib")
 #pragma comment(lib,"xaudio2.lib")
 
