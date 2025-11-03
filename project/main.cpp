@@ -1876,7 +1876,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			if (input->TriggerKey(DIK_0))
 			{
 				//音声再生
-				//SoundPlayWave(xAudio2.Get(), soundData1);
+				SoundPlayWave(xAudio2.Get(), soundData1);
 				OutputDebugStringA("Hit 0\n");
 			}
 
