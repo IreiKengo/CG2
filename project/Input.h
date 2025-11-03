@@ -3,7 +3,7 @@
 #include <wrl.h>
 #define DIRECTINPUT_VESION 0x0800//DiewctInputのバージョン指定
 #include <dinput.h>
-
+#include "WinApp.h"
 
 
 
@@ -18,7 +18,7 @@ public:
 	template <class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 	//初期化
-	void Initialize(HINSTANCE hInstance,HWND hwnd);
+	void Initialize(WinApp* winApp);
 	//更新
 	void Update();
 
@@ -39,6 +39,9 @@ private:
 	BYTE keyPre[256] = {};
 	//DirectInputのインスタンス
 	ComPtr<IDirectInput8> directInput;
+
+	//WindowsAPI
+	WinApp* winApp_ = nullptr;
 
 
 };
