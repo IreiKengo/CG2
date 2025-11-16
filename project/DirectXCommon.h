@@ -5,6 +5,9 @@
 #include <array>
 #include "WinApp.h"
 #include <dxcapi.h>
+#include <string>
+#include "externals/DirectXTex/DirectXTex.h"
+
 
 
 
@@ -26,6 +29,24 @@ public:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGPUDescriptorHandle(uint32_t index);
 
 
+	//getter
+	ID3D12Device* GetDevice() const { return device.Get(); }
+	ID3D12GraphicsCommandList* GetCommandList() const { return commandList.Get(); }
+
+	//シェーダーのコンパイル
+	Microsoft::WRL::ComPtr<IDxcBlob> CompileShader(
+		const std::wstring& filePath,
+		const wchar_t* profile);
+
+	Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(size_t sizeInBytess);
+
+	Microsoft::WRL::ComPtr<ID3D12Resource> CreateTextureResource(const DirectX::TexMetadata& metadata);
+
+	[[nodiscard]]
+	Microsoft::WRL::ComPtr<ID3D12Resource> UploadTextureData(const Microsoft::WRL::ComPtr<ID3D12Resource>& texture, const DirectX::ScratchImage& mipImages);
+	
+	static DirectX::ScratchImage LoadTexture(const std::string& filePath);
+
 
 private:
 
@@ -45,7 +66,7 @@ private:
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
 	Microsoft::WRL::ComPtr<ID3D12Resource> depthResource = nullptr;
 	//深度バッファ
-	HRESULT hr;
+//	HRESULT hr;
 	//各種デスクリプタサイズ
 	uint32_t descriptorSizeRTV;
 	uint32_t descriptorSizeSRV;
@@ -82,6 +103,9 @@ private:
 	IDxcIncludeHandler* includeHandler = nullptr;
 
 	D3D12_RESOURCE_BARRIER barrier{};
+
+
+
 
 	//WindowsAPI
 WinApp* winApp_ = nullptr;
