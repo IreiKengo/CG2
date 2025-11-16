@@ -15,11 +15,17 @@ public:
 
 	void Initialize(WinApp*winApp);
 
+	//描画前処理
+	void PreDraw();
+	//描画後処理
+	void PostDraw();
 	
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCPUDescriptorHandle(uint32_t index);
 
 	D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGPUDescriptorHandle(uint32_t index);
+
+
 
 private:
 
@@ -74,6 +80,8 @@ private:
 
 	//現時点でincludeはしないが、includeに対応するための設定を行っておく
 	IDxcIncludeHandler* includeHandler = nullptr;
+
+	D3D12_RESOURCE_BARRIER barrier{};
 
 	//WindowsAPI
 WinApp* winApp_ = nullptr;
