@@ -202,7 +202,7 @@ void DirectXCommon::InitializeDevice()
 			Log(std::cout, ConvertString(std::format(L"Use Adapater;{}\n", adapterDesc.Description)));
 			break;
 		}
-		useAdapter = nullptr;
+		
 	}
 	//適切なアダプタが見つからなかったので起動できない
 	assert(useAdapter != nullptr);
@@ -480,7 +480,7 @@ void DirectXCommon::UpdateFixFPS()
 	std::chrono::microseconds elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now - reference_);
 
 	//1/60秒（よりわずかに短い時間）立っていない場合
-	if (elapsed < kMinTime) {
+	if (elapsed < kMinCheckTime) {
 		//1/60秒経過するまで微小なスリープを繰り返す
 		while (std::chrono::steady_clock::now() - reference_ < kMinTime) {
 			//1マイクロ秒
@@ -557,7 +557,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileShader(const std::wstring
 		&shaderSourceBuffer,//読み込んだファイル
 		arguments,//コンパイルオプション
 		_countof(arguments),//コンパイルオプションの数
-		includeHandler,//includeが含まれた諸々
+		includeHandler.Get(),//includeが含まれた諸々
 		IID_PPV_ARGS(&shaderResult)//コンパイル結果
 	);
 	//コンパイルエラーではなくdxcが起動できないなど致命的な状況
@@ -565,7 +565,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileShader(const std::wstring
 
 	//3.警告・エラーが出ていないか確認する
 	//警告・エラーが出てたらログに出して止める
-	IDxcBlobUtf8* shaderError = nullptr;
+	ComPtr<IDxcBlobUtf8> shaderError = nullptr;
 	shaderResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&shaderError), nullptr);
 	if (shaderError != nullptr && shaderError->GetStringLength() != 0) {
 		Logger::Log(std::cout, std::string(shaderError->GetStringPointer()));
@@ -574,7 +574,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileShader(const std::wstring
 	}
 	//4.Compile結果を受け取って返す
 	//コンパイル結果から実行用のバイナリ部分を取得
-	IDxcBlob* shaderBlob = nullptr;
+	ComPtr<IDxcBlob> shaderBlob = nullptr;
 	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
 	assert(SUCCEEDED(hr));
 	//成功したログを出す

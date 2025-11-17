@@ -33,6 +33,7 @@ public:
 	//getter
 	ID3D12Device* GetDevice() const { return device.Get(); }
 	ID3D12GraphicsCommandList* GetCommandList() const { return commandList.Get(); }
+	HANDLE GetFenceEvent()const { return fenceEvent; }
 
 	//シェーダーのコンパイル
 	Microsoft::WRL::ComPtr<IDxcBlob> CompileShader(
@@ -97,11 +98,11 @@ private:
 	D3D12_RECT scissorRect{};
 
 	//dxcCompilerを初期化
-	IDxcUtils* dxcUtils = nullptr;
-	IDxcCompiler3* dxcCompiler = nullptr;
+	Microsoft::WRL::ComPtr<IDxcUtils> dxcUtils = nullptr;
+	Microsoft::WRL::ComPtr < IDxcCompiler3> dxcCompiler = nullptr;
 
 	//現時点でincludeはしないが、includeに対応するための設定を行っておく
-	IDxcIncludeHandler* includeHandler = nullptr;
+	Microsoft::WRL::ComPtr <IDxcIncludeHandler> includeHandler = nullptr;
 
 	D3D12_RESOURCE_BARRIER barrier{};
 

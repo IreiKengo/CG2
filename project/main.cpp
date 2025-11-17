@@ -1379,20 +1379,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		if (input->PushKey(DIK_D))
 		{
 
-			transformSphere.translate.x += 0.01f;
+			transformSphere.translate.x += 0.5f;
 		}
 
 		if (input->PushKey(DIK_A))
 		{
-			transformSphere.translate.x -= 0.01f;
+			transformSphere.translate.x -= 0.5f;
 		}
 		if (input->PushKey(DIK_W))
 		{
-			transformSphere.translate.y += 0.01f;
+			transformSphere.translate.y += 0.5f;
 		}
 		if (input->PushKey(DIK_S))
 		{
-			transformSphere.translate.y -= 0.01f;
+			transformSphere.translate.y -= 0.5f;
 		}
 
 
@@ -1527,7 +1527,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	}
 
-	//CloseHandle(fenceEvent);
+	CloseHandle(dxCommon->GetFenceEvent());
 
 
 
