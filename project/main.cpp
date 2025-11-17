@@ -21,8 +21,12 @@
 #include "Input.h"
 #include "WinApp.h"
 #include "DirectXCommon.h"
+#include "Sprite.h"
 #include "Logger.h"
 #include "StringUtility.h"
+#include "SpriteCommon.h"
+
+
 #include <externals/imgui/imgui_impl_dx12.h>
 #include <externals/imgui/imgui_impl_win32.h>
 
@@ -796,8 +800,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #pragma endregion
 
 
+#pragma region SpriteCommonの初期化
 
+	SpriteCommon* spriteCommon = nullptr;
+	//スプライト共通部の初期化
+	spriteCommon = new SpriteCommon;
+	spriteCommon->Initialize(dxCommon);
+
+#pragma endregion
+
+#pragma region スプライトの初期化
+
+	Sprite* sprite = new Sprite();
+	sprite->Initialize();
+
+#pragma endregion
 	
+
+
 
 #ifdef _DEBUG
 	Microsoft::WRL::ComPtr<ID3D12InfoQueue> infoQueue = nullptr;
@@ -1541,11 +1561,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//音声データ解放
 	SoundUnload(&soundData1);
 
-	//入力解放
-	delete input;
+	//Sprite解放
+	delete sprite;
+
+	//SpriteCommon解放
+	delete spriteCommon;
 
 	//DirectX解放
 	delete dxCommon;
+
+	//入力解放
+	delete input;
 
 	//WindowsAPIの終了処理
 	winApp->Finilize();
