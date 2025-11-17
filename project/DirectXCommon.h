@@ -105,7 +105,7 @@ private:
 	D3D12_RESOURCE_BARRIER barrier{};
 
 
-
+	DXGI_FORMAT rtvFormat_ = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 
 	//WindowsAPI
 WinApp* winApp_ = nullptr;

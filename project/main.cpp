@@ -12,6 +12,7 @@
 
 #include <sstream>
 
+#include "D3DResourceLeakChecker.h"
 
 #include "vector"
 #include <numbers>
@@ -112,19 +113,7 @@ struct ModelData
 	MaterialData material;
 };
 
-struct D3DResourceLeakChecker {
-	~D3DResourceLeakChecker()
-	{
-		//リソースリークチェック
-		Microsoft::WRL::ComPtr<IDXGIDebug1> debug;
-		if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug))))
-		{
-			debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
-			debug->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
-			debug->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
-		}
-	}
-};
+
 
 //チャンクヘッダ
 struct ChunkHeader
@@ -1193,9 +1182,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #pragma region 球
 	//球
 	//分割数
-	uint32_t kSubdivision = 16;
+	//uint32_t kSubdivision = 16;
 	//分割数(縦)×分割数(横)
-	uint32_t sphereVertexNum = (kSubdivision + 1) * (kSubdivision + 1);
+	//uint32_t sphereVertexNum = (kSubdivision + 1) * (kSubdivision + 1);
 
 	//モデル読み込み
 	ModelData modelData = LoadObjFile("resources", "axis.obj");
