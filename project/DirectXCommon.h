@@ -7,6 +7,7 @@
 #include <dxcapi.h>
 #include <string>
 #include "externals/DirectXTex/DirectXTex.h"
+#include <chrono>
 
 
 
@@ -110,6 +111,12 @@ private:
 	//WindowsAPI
 WinApp* winApp_ = nullptr;
 
+
+//記録時間
+std::chrono::steady_clock::time_point reference_;
+
+
+
 //デバイスの初期化
 void InitializeDevice();
 
@@ -146,7 +153,10 @@ void CreateDXCCompiler();
 //ImGuiの初期化
 void InitializeImGui();
 
-
+//FPS固定初期化
+void InitializeFixFPS();
+//FPS固定更新
+void UpdateFixFPS();
 
 
 //デスクリプタヒープ生成関数
