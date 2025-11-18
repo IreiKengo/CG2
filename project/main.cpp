@@ -1492,10 +1492,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		
 
-
+		//DirectXの描画基準。全ての描画に共通宇のグラッフィックスコマンドを積む
 		dxCommon->PreDraw();
 
-
+		//Spriteの描画基準。Spriteの描画の共通のグラッフィックスコマンドを積む
+		spriteCommon->DrawCommon();
 
 
 		//RootSignatureを設定。PSOに設定しているけど別途設定が必要
