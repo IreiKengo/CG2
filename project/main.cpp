@@ -664,8 +664,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma region スプライトの初期化
 
-	Sprite* sprite = new Sprite();
-	sprite->Initialize(spriteCommon,dxCommon);
+	std::vector<Sprite*> sprites;
+	for (uint32_t i = 0; i < 5; ++i)
+	{
+		Sprite* sprite = new Sprite();
+		sprite->Initialize(spriteCommon, dxCommon);
+		sprites.push_back(sprite);
+	}
+	
 
 #pragma endregion
 	
@@ -1185,7 +1191,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//wvpData->WVP = worldViewProjectionMatrix;
 		//wvpData->World = worldMatrix;
 
-		sprite->Update();
+		for (uint32_t i = 0; i < sprites.size(); ++i)
+		{
+			sprites[i]->Update();
+		}
+		
+		
+		
 
 		////transformSphere.rotate.y += 0.03f;
 		////Sphere用のWorldViewProjectionMatrixを作る
@@ -1224,8 +1236,39 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//ImGui::SliderFloat3("LightDirection", &directionalLightData->direction.x, -1.0f, 1.0f);
 		//ImGui::DragFloat("intensity", &directionalLightData->intensity);
 
-		//ImGui::DragFloat3("TranslateSprite", &transformSprite.translate.x);
-		//ImGui::Checkbox("useMonsterBall", &useMonsterBall);
+		sprites[0]->SetPosition(Vector2{ 0.0f,0.0f});
+		sprites[1]->SetPosition(Vector2{ 200.0f,0.0f });
+		sprites[2]->SetPosition(Vector2{ 400.0f,0.0f });
+		sprites[3]->SetPosition(Vector2{ 600.0f,0.0f });
+		sprites[4]->SetPosition(Vector2{ 800.0f,0.0f });
+
+		for (uint32_t i = 0; i < sprites.size(); ++i)
+		{
+
+			Vector2 position = sprites[i]->GetPosition();
+			ImGui::DragFloat2("SpriteTranslate", &position.x);
+			//position.x = position.x + i * 20;
+			//変更を反映する
+			sprites[i]->SetPosition(position);
+			//角度を変化させるテスト
+			float rotation = sprites[i]->GetRotation();
+			ImGui::DragFloat("SpriteRotate", &rotation, 0.01f);
+			sprites[i]->SetRotation(rotation);
+
+			//サイズを変化させるテスト
+			Vector2 size = sprites[i]->GetSize();
+			ImGui::DragFloat2("SpriteScale", &size.x);
+			sprites[i]->SetSize(size);
+
+			//色を変化させるテスト
+			Vector4 color = sprites[i]->GetColor();
+			ImGui::ColorEdit4("SpriteColor", &color.x);
+			sprites[i]->SetColor(color);
+
+		}
+
+		
+		
 
 		//ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
 		//ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
@@ -1280,7 +1323,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		////球の描画
 		//dxCommon->GetCommandList()->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
 
-		sprite->Draw();
+
+		for (uint32_t i = 0; i < sprites.size(); ++i)
+		
+		{
+			sprites[i]->Draw();
+		}
+		
 
 		
 
@@ -1307,7 +1356,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	SoundUnload(&soundData1);
 
 	//Sprite解放
-	delete sprite;
+	for (uint32_t i = 0; i < sprites.size(); ++i)
+	{
+
+		delete sprites[i];
+	}
 
 	//SpriteCommon解放
 	delete spriteCommon;
