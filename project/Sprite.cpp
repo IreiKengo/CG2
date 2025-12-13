@@ -21,6 +21,8 @@ void Sprite::Initialize(SpriteCommon* spriteCommon, DirectXCommon* dxCommon, std
 
 	CreateTransformationMatrixData();
 
+	
+
 	//単位行列を書き込んでおく
 	textureIndex = TextureManager::GetInstance()->GetTextureIndexByFilePath(textureFilePath);
 
@@ -78,6 +80,16 @@ void Sprite::Draw()
 
 	//描画！（DrawCall/ドローコール）
 	dxCommon_->GetCommandList()->DrawIndexedInstanced(6, 1, 0, 0, 0);
+
+}
+
+void Sprite::TextureChange(std::string textureFilePath)
+{
+
+	auto texMgr = TextureManager::GetInstance();
+
+	// テクスチャインデックスを差し替えるだけ
+	textureIndex = texMgr->GetTextureIndexByFilePath(textureFilePath);
 
 }
 

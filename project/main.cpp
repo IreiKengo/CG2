@@ -443,7 +443,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #pragma region TextreManagerの初期化
 
 	//テクスチャマネージャの初期化
-	TextureManager::GetInstance()->Initialize();
+	TextureManager::GetInstance()->Initialize(dxCommon);
 
 
 #pragma endregion
@@ -457,13 +457,29 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma endregion
 
+	//Textureを読んで転送する
+	TextureManager::GetInstance()->LoadTexture("resources/uvChecker.png");
+
+	//２枚目のTextureを読んで転送する
+	TextureManager::GetInstance()->LoadTexture("resources/monsterBall.png");
+
+
 #pragma region スプライトの初期化
 
 	std::vector<Sprite*> sprites;
 	for (uint32_t i = 0; i < 5; ++i)
 	{
 		Sprite* sprite = new Sprite();
-		sprite->Initialize(spriteCommon, dxCommon);
+
+		std::string texturePath;
+			if (i % 2 == 0) {
+				texturePath = "resources/uvChecker.png";
+			} else {
+
+				texturePath = "resources/monsterBall.png";
+			}
+
+		sprite->Initialize(spriteCommon, dxCommon, texturePath);
 		sprites.push_back(sprite);
 	}
 	
@@ -697,8 +713,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	
 	
 
-	//Textureを読んで転送する
-	TextureManager::GetInstance()->LoadTexture("resources/uvChecker.png");
+	
 	//const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
 	//Microsoft::WRL::ComPtr<ID3D12Resource> textureResource = dxCommon->CreateTextureResource(metadata);
 	//Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource = dxCommon->UploadTextureData(textureResource, mipImages);
@@ -715,8 +730,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//dxCommon->GetDevice()->CreateShaderResourceView(textureResource.Get(), &srvDesc, textureSrvHandleCPU);
 
 
-	//２枚目のTextureを読んで転送する
-	TextureManager::GetInstance()->LoadTexture("resources/monsterBall.png");
+	
 	//const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
 	//Microsoft::WRL::ComPtr<ID3D12Resource> textureResource2 = dxCommon->CreateTextureResource(metadata2);
 	//Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource2 = dxCommon->UploadTextureData(textureResource2, mipImages2);
@@ -888,7 +902,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #pragma endregion
 
 	//SRVの切り替え
-	bool useMonsterBall = true;
+	bool useMonsterBall = false;
 
 #pragma region Lighting
 	//平行光源用のリソースを作る。今回はカラー１つ分のサイズを用意する
@@ -1062,7 +1076,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		
-		
+		ImGui::Checkbox("Use MonsterBall", &useMonsterBall);
+
+		for (uint32_t i = 0; i < sprites.size(); ++i)
+		{
+			if (i % 2 == 0)
+			{
+
+
+				if (useMonsterBall)
+				{
+					sprites[i]->TextureChange("resources/monsterBall.png");
+				} else
+				{
+					sprites[i]->TextureChange("resources/uvChecker.png");
+				}
+			}
+		}
+
 
 		//ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
 		//ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
@@ -1105,6 +1136,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		//描画！（DrawCall/ドローコール）。３頂点で１つのインスタンス。インスタンスについては今後
 		//dxCommon->GetCommandList()->DrawInstanced(6, 1, 0, 0);
+
+		
+
 
 
 		//Sphere用の描画。変更が必要なものだけ変更する

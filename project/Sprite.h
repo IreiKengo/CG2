@@ -55,6 +55,8 @@ public:
 	void SetSize(const Vector2& size) { this->size = size; }
 
 
+	void TextureChange(std::string textureFilePath);
+
 private:
 
 	SpriteCommon* spriteCommon = nullptr;
@@ -92,7 +94,7 @@ private:
 	//回転
 	float rotation = 0.0f;
 	//サイズ
-	Vector2 size = { 640.0f,360.0f };
+	Vector2 size = { 100.0f,100.0f };
 
 	//テクスチャ番号
 	uint32_t textureIndex = 0;
