@@ -384,7 +384,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	std::string logFilePath = std::format("logs/") + dateString + ".log";
 	//ファイルを使って書き込み準備
 	std::ofstream logStream(logFilePath);
-	
+
 
 	//uint32_t* p = nullptr;
 	//*p = 100;
@@ -472,20 +472,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		Sprite* sprite = new Sprite();
 
 		std::string texturePath;
-			if (i % 2 == 0) {
-				texturePath = "resources/uvChecker.png";
-			} else {
+		if (i % 2 == 0) {
+			texturePath = "resources/uvChecker.png";
+		} else {
 
-				texturePath = "resources/monsterBall.png";
-			}
+			texturePath = "resources/monsterBall.png";
+		}
 
 		sprite->Initialize(spriteCommon, dxCommon, texturePath);
 		sprites.push_back(sprite);
 	}
-	
+
 
 #pragma endregion
-	
+
 
 
 
@@ -637,7 +637,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState = nullptr;
 	//hr = dxCommon->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc,
 	//	IID_PPV_ARGS(&graphicsPipelineState));	
-	
+
 
 	//頂点リソースを作る
 	//Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource = dxCommon->CreateBufferResource(sizeof(VertexData) * 6);
@@ -701,19 +701,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//vertexData[5].texCoord = { 1.0f,1.0f };
 
 
-	
 
-	
+
+
 
 
 
 	//カメラ
 	Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-10.0f} };
 
-	
-	
 
-	
+
+
+
 	//const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
 	//Microsoft::WRL::ComPtr<ID3D12Resource> textureResource = dxCommon->CreateTextureResource(metadata);
 	//Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource = dxCommon->UploadTextureData(textureResource, mipImages);
@@ -730,7 +730,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//dxCommon->GetDevice()->CreateShaderResourceView(textureResource.Get(), &srvDesc, textureSrvHandleCPU);
 
 
-	
+
 	//const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
 	//Microsoft::WRL::ComPtr<ID3D12Resource> textureResource2 = dxCommon->CreateTextureResource(metadata2);
 	//Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource2 = dxCommon->UploadTextureData(textureResource2, mipImages2);
@@ -751,9 +751,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma region Sprite	
 
-	
 
-	
+
+
 
 
 
@@ -939,7 +939,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma endregion
 
-
+	float a = 0;
 
 
 
@@ -955,7 +955,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			//ゲームループを抜ける
 			break;
 		}
-		
+
 
 		//入力の更新
 		input->Update();
@@ -1003,9 +1003,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			sprites[i]->Update();
 		}
+
 		
-		
-		
+		a += 0.01f;
+		sprites[0]->SetRotation(a);
+
 
 		////transformSphere.rotate.y += 0.03f;
 		////Sphere用のWorldViewProjectionMatrixを作る
@@ -1044,11 +1046,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//ImGui::SliderFloat3("LightDirection", &directionalLightData->direction.x, -1.0f, 1.0f);
 		//ImGui::DragFloat("intensity", &directionalLightData->intensity);
 
-		sprites[0]->SetPosition(Vector2{ 0.0f,0.0f});
+		for (uint32_t i = 0; i < sprites.size(); ++i)
+		{
+			sprites[i]->SetPosition(Vector2{ 100.0f + i * 200.0f,200.0f });
+		}
+		/*sprites[0]->SetPosition(Vector2{ 0.0f,0.0f });
 		sprites[1]->SetPosition(Vector2{ 200.0f,0.0f });
 		sprites[2]->SetPosition(Vector2{ 400.0f,0.0f });
 		sprites[3]->SetPosition(Vector2{ 600.0f,0.0f });
-		sprites[4]->SetPosition(Vector2{ 800.0f,0.0f });
+		sprites[4]->SetPosition(Vector2{ 800.0f,0.0f });*/
 
 		for (uint32_t i = 0; i < sprites.size(); ++i)
 		{
@@ -1075,7 +1081,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		}
 
-		
+
 		ImGui::Checkbox("Use MonsterBall", &useMonsterBall);
 
 		for (uint32_t i = 0; i < sprites.size(); ++i)
@@ -1110,7 +1116,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		////ImGuiの内部コマンドを生成する
 		ImGui::Render();
 
-		
+
 
 		//DirectXの描画基準。全ての描画に共通宇のグラッフィックスコマンドを積む
 		dxCommon->PreDraw();
@@ -1137,7 +1143,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//描画！（DrawCall/ドローコール）。３頂点で１つのインスタンス。インスタンスについては今後
 		//dxCommon->GetCommandList()->DrawInstanced(6, 1, 0, 0);
 
-		
+
 
 
 
@@ -1153,13 +1159,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 		for (uint32_t i = 0; i < sprites.size(); ++i)
-		
+
 		{
 			sprites[i]->Draw();
 		}
-		
 
-		
+
+
 
 		//実際のdxCommon->GetCommandList()のImGuiの描画コマンドを積む
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dxCommon->GetCommandList());

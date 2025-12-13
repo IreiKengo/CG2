@@ -30,20 +30,26 @@ void Sprite::Initialize(SpriteCommon* spriteCommon, DirectXCommon* dxCommon, std
 
 void Sprite::Update()
 {
+
+	float left = 0.0f - anchorPoint.x;
+	float right = 1.0f - anchorPoint.x;
+	float top = 0.0f - anchorPoint.y;
+	float bottom = 1.0f - anchorPoint.y;
+
 	//頂点リソースにデータを書き込む（4点分）
-	vertexData[0].position = { 0.0f,1.0f,0.0f,1.0f };//左下
+	vertexData[0].position = { left,bottom,0.0f,1.0f };//左下
 	vertexData[0].texCoord = { 0.0f,1.0f };
 	vertexData[0].normal = { 0.0f,0.0f,-1.0f };
 
-	vertexData[1].position = { 0.0f,0.0f,0.0f,1.0f };//左上
+	vertexData[1].position = { left,top,0.0f,1.0f };//左上
 	vertexData[1].texCoord = { 0.0f,0.0f };
 	vertexData[1].normal = { 0.0f,0.0f,-1.0f };
 
-	vertexData[2].position = { 1.0f,1.0f,0.0f,1.0f };//右下
+	vertexData[2].position = { right,bottom,0.0f,1.0f };//右下
 	vertexData[2].texCoord = { 1.0f,1.0f };
 	vertexData[2].normal = { 0.0f,0.0f,-1.0f };
 
-	vertexData[3].position = { 1.0f,0.0f,0.0f,1.0f };//右上
+	vertexData[3].position = { right,top,0.0f,1.0f };//右上
 	vertexData[3].texCoord = { 1.0f,0.0f };
 	vertexData[3].normal = { 0.0f,0.0f,-1.0f };
 

@@ -48,12 +48,14 @@ public:
 	float GetRotation() const { return rotation; }
 	const Vector4& GetColor() const { return materialData->color; }
 	const Vector2& GetSize() const { return size; }
+	const Vector2& GetAnchorPoint()const { return anchorPoint; }
+
 	//setter
 	void SetPosition(const Vector2& position) { this->position = position; }
 	void SetRotation(float rotation) { this->rotation = rotation; }
 	void SetColor(const Vector4& color) { materialData->color = color; }
 	void SetSize(const Vector2& size) { this->size = size; }
-
+	void SetAnchorPoint(const Vector2& anchorPoint) { this->anchorPoint = anchorPoint; }
 
 	void TextureChange(std::string textureFilePath);
 
@@ -90,7 +92,7 @@ private:
 
 
 	//座標
-	Vector2 position = { 0.0f,0.0f };
+	Vector2 position = { 500.0f,100.0f };
 	//回転
 	float rotation = 0.0f;
 	//サイズ
@@ -99,6 +101,8 @@ private:
 	//テクスチャ番号
 	uint32_t textureIndex = 0;
 
+	//アンカーポイント
+	Vector2 anchorPoint = { 0.5f,0.5f };
 
 	//DirectXCommon
 	DirectXCommon* dxCommon_;
