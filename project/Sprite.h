@@ -7,6 +7,7 @@
 #include <cstdint>
 #include "Transform.h"
 #include "Matrix4x4.h"
+#include <string>
 
 class SpriteCommon;
 class DirectXCommon;
@@ -36,7 +37,7 @@ public:
 		Matrix4x4 World;
 	};
 
-	void Initialize(SpriteCommon* spriteCommon, DirectXCommon* dxCommon);
+	void Initialize(SpriteCommon* spriteCommon, DirectXCommon* dxCommon,std::string textureFilePath);
 
 	void Update();
 
@@ -93,6 +94,8 @@ private:
 	//サイズ
 	Vector2 size = { 640.0f,360.0f };
 
+	//テクスチャ番号
+	uint32_t textureIndex = 0;
 
 
 	//DirectXCommon

@@ -47,8 +47,9 @@ public:
 	[[nodiscard]]
 	Microsoft::WRL::ComPtr<ID3D12Resource> UploadTextureData(const Microsoft::WRL::ComPtr<ID3D12Resource>& texture, const DirectX::ScratchImage& mipImages);
 	
-	static DirectX::ScratchImage LoadTexture(const std::string& filePath);
 
+	//最大SRV数（最大テクスチャ枚数）
+	static const uint32_t kMaxSRVCount;
 
 private:
 
@@ -115,6 +116,9 @@ WinApp* winApp_ = nullptr;
 
 //記録時間
 std::chrono::steady_clock::time_point reference_;
+
+
+
 
 
 

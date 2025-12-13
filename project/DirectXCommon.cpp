@@ -13,12 +13,6 @@
 #include <strsafe.h>
 
 
-
-
-
-
-
-
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib,"dxcompiler.lib")
@@ -27,6 +21,8 @@
 using namespace StringUtility;
 using namespace Logger;
 using namespace Microsoft::WRL;
+
+const uint32_t DirectXCommon::kMaxSRVCount = 512;
 
 void DirectXCommon::Initialize(WinApp* winApp)
 {
@@ -362,7 +358,7 @@ void DirectXCommon::CreateDescriptorHeaps()
 	//RTV用のヒープでディスクリプタの数は2。RTVはShader内で触れるものではないので、ShaderVisibleはfalse
 	rtvDescriptorHeap = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, false);
 	//SRV用のヒープでディスクリプタの数は128。SRVはShader内で触れるものなので、ShaderVisibleはtrue
-	srvDescriptorHeap = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 128, true);
+	srvDescriptorHeap = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, kMaxSRVCount, true);
 	//DSV用のヒープでディスクリプタの数は1。DSVはShader内で触れるものではないので、ShaderVisibleはfalse
 	dsvDescriptorHeap = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false);
 
@@ -695,38 +691,6 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::UploadTextureData(const Mi
 	commandList->ResourceBarrier(1, &barrier);
 	return intermediateResource;
 
-
-}
-
-DirectX::ScratchImage DirectXCommon::LoadTexture(const std::string& filePath)
-{
-		//テクスチャファイルを読んでプログラムを扱えるようにする
-	 // ローカル変数としてScratchImageを生成
-	DirectX::ScratchImage image{};
-
-	// std::string -> std::wstring 変換
-	std::wstring filePathw(filePath.begin(), filePath.end());
-
-	// WIC経由で画像をロード
-	HRESULT hr = DirectX::LoadFromWICFile(
-		filePathw.c_str(),
-		DirectX::WIC_FLAGS_FORCE_SRGB,
-		nullptr,
-		image);
-	assert(SUCCEEDED(hr));
-
-	// ミップマップ生成
-	DirectX::ScratchImage mipImages{};
-	hr = DirectX::GenerateMipMaps(
-		image.GetImages(),
-		image.GetImageCount(),
-		image.GetMetadata(),
-		DirectX::TEX_FILTER_SRGB,
-		0,
-		mipImages);
-	assert(SUCCEEDED(hr));
-
-	return mipImages;
 
 }
 

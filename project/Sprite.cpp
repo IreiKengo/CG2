@@ -3,21 +3,26 @@
 #include "SpriteCommon.h"
 #include "DirectXCommon.h"
 #include "Matrix4x4Math.h"
+#include "TextureManager.h"
 
 using namespace math;
 
-void Sprite::Initialize(SpriteCommon* spriteCommon, DirectXCommon* dxCommon)
+void Sprite::Initialize(SpriteCommon* spriteCommon, DirectXCommon* dxCommon, std::string textureFilePath)
 {
 
 	//引数で受け取ってメンバ変数に記録する
 	this->spriteCommon = spriteCommon;
 	dxCommon_ = dxCommon;
 
+
 	CreateVertexData();
 
 	CreateMaterialData();
 
 	CreateTransformationMatrixData();
+
+	//単位行列を書き込んでおく
+	textureIndex = TextureManager::GetInstance()->GetTextureIndexByFilePath(textureFilePath);
 
 }
 
@@ -68,7 +73,9 @@ void Sprite::Draw()
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 	//TransformationMatrixCBufferの場所を設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResources->GetGPUVirtualAddress());
-	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, dxCommon_->GetSRVGPUDescriptorHandle(1));
+	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetSrvHandleGPU(textureIndex));
+
+
 	//描画！（DrawCall/ドローコール）
 	dxCommon_->GetCommandList()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
