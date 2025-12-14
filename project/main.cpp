@@ -28,6 +28,8 @@
 #include "TextureManager.h"
 #include "Object3dCommon.h"
 #include "Object3d.h"
+#include "ModelCommon.h"
+#include "Model.h"
 
 #include <externals/imgui/imgui_impl_dx12.h>
 #include <externals/imgui/imgui_impl_win32.h>
@@ -311,6 +313,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	spriteCommon = new SpriteCommon;
 	spriteCommon->Initialize(dxCommon);
 
+	ModelCommon* modelCommon = nullptr;
+	modelCommon = new ModelCommon;
+	modelCommon->Initialize(dxCommon);
 
 	//3Dオブジェクト共通部
 	Object3dCommon* object3dCommon = nullptr;
@@ -360,10 +365,27 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma endregion
 
+	
+
 #pragma region 最初のシーンの初期化
 
-	Object3d* object3d = new Object3d();
-	object3d->Initialize(object3dCommon);
+	Model* model = new Model();
+	model->Initialize(modelCommon);
+
+	std::vector<Object3d*> objects;
+	for(int i = 0;i<2;++i)
+	{
+		Object3d* object3d = new Object3d();
+
+
+		object3d->Initialize(object3dCommon);
+		object3d->SetModel(model);
+		objects.push_back(object3d);
+	}
+
+	/*Object3d* object3d = new Object3d();
+	object3d->Initialize(object3dCommon);*/
+
 
 #pragma endregion
 
@@ -376,8 +398,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	bool useMonsterBall = false;
 
 #pragma region Lighting
-	
-	
+
+
 
 	////平行光源の切り替え	
 	bool useLighting = false;
@@ -402,7 +424,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma endregion
 
-	
+
 
 
 	bool flipX = sprites[0]->GetIsFlipX();
@@ -468,10 +490,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 
+		for (uint32_t i = 0; i < objects.size(); ++i)
+		{
+			objects[i]->Update();
+		}
 
-		object3d->Update();
-
-		
 
 		//Matrix4x4 uvTransformMatrix = MakeScaleMatrix(uvTransformSprite.scale);
 		//uvTransformMatrix = Multiply(uvTransformMatrix, MakeRotateZMatrix(uvTransformSprite.rotate.z));
@@ -505,7 +528,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			sprites[i]->SetPosition(Vector2{ 0.0f + i * 200.0f,0.0f });
 		}
 
-
+		for (uint32_t i = 0; i < objects.size(); ++i)
+		{
+			objects[i]->SetTranslate({ 0.0f + i * 2.0f,0.0f,0.0f });
+		}
 
 
 		ImGui::Checkbox("Use MonsterBall", &useMonsterBall);
@@ -558,7 +584,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 		//全てのObject3d個々の描画
-		object3d->Draw();
+		for (uint32_t i = 0; i < objects.size(); ++i)
+		{
+			objects[i]->Draw();
+
+		}
 
 		//Spriteの描画基準。Spriteの描画の共通のグラッフィックスコマンドを積む
 		spriteCommon->ScreenCommon();
@@ -605,7 +635,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//dxCommon->GetCommandList()->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
 
 
-		
+
 
 
 
@@ -634,8 +664,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//音声データ解放
 	SoundUnload(&soundData1);
 
-	delete object3d;
+	for (uint32_t i = 0; i < objects.size(); ++i)
+	{
+		delete objects[i];
+	}
 
+	delete model;
 
 	//Sprite解放
 	for (uint32_t i = 0; i < sprites.size(); ++i)
@@ -650,6 +684,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 	delete object3dCommon;
+
+	delete modelCommon;
 
 	//SpriteCommon解放
 	delete spriteCommon;

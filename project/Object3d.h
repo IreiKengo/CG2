@@ -1,17 +1,15 @@
 #pragma once
-#include "Vector2.h"
-#include "Vector3.h"
-#include "Vector4.h"
-#include <string>
 #include <wrl.h>
-#include <vector>
 #include <d3d12.h>
 #include "Transform.h"
+#include "Vector3.h"
+#include "Vector4.h"
 #include "Matrix4x4Math.h"
 
 
 class Object3dCommon;
 class DirectXCommon;
+class Model;
 
 //3Dオブジェクト
 class Object3d
@@ -19,33 +17,8 @@ class Object3d
 
 public:
 
-	//頂点データ
-	struct VertexData {
-		Vector4 position;
-		Vector2 texCoord;
-		Vector3 normal;
-	};
 
-	//マテリアルデータ
-	struct Material
-	{
-		Vector4 color;
-		int32_t enableLighting;
-		float padding[3];
-		Matrix4x4 uvTransform;
-	};
 
-	struct MaterialData
-	{
-		std::string textureFilePath;
-		uint32_t textureIndex = 0;
-	};
-
-	struct ModelData
-	{
-		std::vector<VertexData> vertices;
-		MaterialData material;
-	};
 
 	//座標変換行列データ
 	struct TransformationMatrix
@@ -65,32 +38,23 @@ public:
 	void Update();
 	void Draw();
 
-	
-	
+
+	//setter
+	void SetModel(Model* model) { this->model = model; }
+	void SetScale(const Vector3& scale) { this->transform.scale = scale; }
+	void SetRotate(const Vector3& rotate) { this->transform.rotate = rotate; }
+	void SetTranslate(const Vector3& translate) { this->transform.translate = translate; }
+
+	//getter
+	const Vector3& GetScale()const { return transform.scale; }
+	const Vector3& GetRotate()const { return transform.rotate; }
+	const Vector3& GetTranslate()const { return transform.translate; }
+
 
 private:
 
 	Object3dCommon* object3dCommon = nullptr;
 
-	ModelData modelData;
-
-	//バッファリソース
-	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;
-	//バッファリソース内のデータを指すポインタ
-	VertexData* vertexData = nullptr;
-	//バッファリソースの使い道を補足するバッファビュー
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
-
-
-	//.mtlファイルの読み取り
-	static MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
-	//.objファイルの読み取り
-	static ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
-
-	//マテリアルリソース
-	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource;
-	//バッファリソース内のデータを指すポインタ
-	Material* materialData = nullptr;
 
 	//バッファリソース
 	Microsoft::WRL::ComPtr<ID3D12Resource> transformationMatrixResources;
@@ -108,10 +72,8 @@ private:
 
 	DirectXCommon* dxCommon_ = nullptr;
 
-	//頂点データの作成
-	void CreateVertexData();
-	//マテリアルデータの作成
-	void CreateMaterialData();
+	Model* model = nullptr;
+	
 	//座標返還行列データ作成
 	void CreateTransformationMatrixData();
 	//平行光源データ作成
