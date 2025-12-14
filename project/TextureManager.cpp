@@ -58,7 +58,7 @@ void TextureManager::LoadTexture(const std::string& filePath)
 	//テクスチャファイルを読んでプログラムを扱えるようにする
  // ローカル変数としてScratchImageを生成
 	DirectX::ScratchImage image{};
-	
+
 
 	// std::string -> std::wstring 変換
 	std::wstring filePathw(filePath.begin(), filePath.end());
@@ -124,7 +124,7 @@ void TextureManager::ReleaseIntermediateResources()
 
 uint32_t TextureManager::GetTextureIndexByFilePath(const std::string& filePath)
 {
-	
+
 	//読み込み済みテクスチャデータを検索
 	auto it = std::find_if(
 		textureDatas.begin(),
@@ -150,4 +150,15 @@ D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSrvHandleGPU(uint32_t textureInde
 
 	TextureData& textureData = textureDatas[textureIndex];
 	return textureData.srvHandleGPU;
+}
+
+const DirectX::TexMetadata& TextureManager::GetMetaData(uint32_t textureIndex)
+{
+	//範囲外指定違反チェック
+	assert(textureIndex < textureDatas.size());
+
+	//テクスチャデータの参照を取得
+	TextureData& textureData = textureDatas[textureIndex];
+	return textureData.metadata;
+
 }

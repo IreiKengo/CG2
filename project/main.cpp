@@ -471,15 +471,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	{
 		Sprite* sprite = new Sprite();
 
-		std::string texturePath;
+		/*std::string texturePath;
 		if (i % 2 == 0) {
 			texturePath = "resources/uvChecker.png";
 		} else {
 
 			texturePath = "resources/monsterBall.png";
-		}
+		}*/
 
-		sprite->Initialize(spriteCommon, dxCommon, texturePath);
+		sprite->Initialize(spriteCommon, dxCommon, "resources/uvChecker.png");
 		sprites.push_back(sprite);
 	}
 
@@ -942,7 +942,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	float a = 0;
 
 
-
+	bool flipX = sprites[0]->GetIsFlipX();
 
 	//ウィンドウの×ボタンが押されるまでループ
 	while (true)
@@ -1005,8 +1005,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		
-		a += 0.01f;
-		sprites[0]->SetRotation(a);
+		
 
 
 		////transformSphere.rotate.y += 0.03f;
@@ -1048,38 +1047,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		for (uint32_t i = 0; i < sprites.size(); ++i)
 		{
-			sprites[i]->SetPosition(Vector2{ 100.0f + i * 200.0f,200.0f });
+			sprites[i]->SetPosition(Vector2{ 0.0f + i * 200.0f,0.0f });
 		}
-		/*sprites[0]->SetPosition(Vector2{ 0.0f,0.0f });
-		sprites[1]->SetPosition(Vector2{ 200.0f,0.0f });
-		sprites[2]->SetPosition(Vector2{ 400.0f,0.0f });
-		sprites[3]->SetPosition(Vector2{ 600.0f,0.0f });
-		sprites[4]->SetPosition(Vector2{ 800.0f,0.0f });*/
+		
 
-		for (uint32_t i = 0; i < sprites.size(); ++i)
-		{
-
-			Vector2 position = sprites[i]->GetPosition();
-			ImGui::DragFloat2("SpriteTranslate", &position.x);
-			//position.x = position.x + i * 20;
-			//変更を反映する
-			sprites[i]->SetPosition(position);
-			//角度を変化させるテスト
-			float rotation = sprites[i]->GetRotation();
-			ImGui::DragFloat("SpriteRotate", &rotation, 0.01f);
-			sprites[i]->SetRotation(rotation);
-
-			//サイズを変化させるテスト
-			Vector2 size = sprites[i]->GetSize();
-			ImGui::DragFloat2("SpriteScale", &size.x);
-			sprites[i]->SetSize(size);
-
-			//色を変化させるテスト
-			Vector4 color = sprites[i]->GetColor();
-			ImGui::ColorEdit4("SpriteColor", &color.x);
-			sprites[i]->SetColor(color);
-
-		}
 
 
 		ImGui::Checkbox("Use MonsterBall", &useMonsterBall);
@@ -1100,6 +1071,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			}
 		}
 
+		
+
+		if (ImGui::Checkbox("Flip X", &flipX))
+		{
+			sprites[0]->SetIsFlipX(flipX);
+		}
 
 		//ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
 		//ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
@@ -1161,7 +1138,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		for (uint32_t i = 0; i < sprites.size(); ++i)
 
 		{
-			sprites[i]->Draw();
+			sprites[0]->Draw();
 		}
 
 

@@ -37,7 +37,7 @@ public:
 		Matrix4x4 World;
 	};
 
-	void Initialize(SpriteCommon* spriteCommon, DirectXCommon* dxCommon,std::string textureFilePath);
+	void Initialize(SpriteCommon* spriteCommon, DirectXCommon* dxCommon, std::string textureFilePath);
 
 	void Update();
 
@@ -49,6 +49,10 @@ public:
 	const Vector4& GetColor() const { return materialData->color; }
 	const Vector2& GetSize() const { return size; }
 	const Vector2& GetAnchorPoint()const { return anchorPoint; }
+	bool GetIsFlipX()const { return isFlipX_; }
+	bool GetIsFlipY()const { return isFlipY_; }
+	const Vector2& GetTextureLeftTop()const { return textureLeftTop; }
+	const Vector2& GetTextureSize()const { return textureSize; }
 
 	//setter
 	void SetPosition(const Vector2& position) { this->position = position; }
@@ -56,6 +60,10 @@ public:
 	void SetColor(const Vector4& color) { materialData->color = color; }
 	void SetSize(const Vector2& size) { this->size = size; }
 	void SetAnchorPoint(const Vector2& anchorPoint) { this->anchorPoint = anchorPoint; }
+	void SetIsFlipX(bool isFlipX) { isFlipX_ = isFlipX; }
+	void SetIsFlipY(bool isFlipY) { isFlipY_ = isFlipY; }
+	void SetTextureLeftTop(const Vector2& textureLeftTop) { this->textureLeftTop = textureLeftTop; }
+	void SetTextureSize(const Vector2& textureSize) { this->textureSize = textureSize; }
 
 	void TextureChange(std::string textureFilePath);
 
@@ -102,7 +110,18 @@ private:
 	uint32_t textureIndex = 0;
 
 	//アンカーポイント
-	Vector2 anchorPoint = { 0.5f,0.5f };
+	Vector2 anchorPoint = { 0.0f,0.0f };
+
+	//左右フリップ
+	bool isFlipX_ = false;
+	//上下フリップ
+	bool isFlipY_ = false;
+
+	//テクスチャ左上座標
+	Vector2 textureLeftTop = { 0.0f,0.0f };
+	//テクスチャ切り出しサイズ
+	Vector2 textureSize = { 64.0f,64.0f };
+
 
 	//DirectXCommon
 	DirectXCommon* dxCommon_;
@@ -113,5 +132,8 @@ private:
 	void CreateMaterialData();
 	//座標返還行列データ作成
 	void CreateTransformationMatrixData();
+
+	//テクスチャサイズをイメージに合わせる
+	void AdjustTextureSize();
 
 };
