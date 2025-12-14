@@ -1,8 +1,8 @@
 #pragma once
 #include "DirectXCommon.h"
 
-//スプライト共通部
-class SpriteCommon
+//3Dオブジェクト共通部
+class Object3dCommon
 {
 
 public:
@@ -12,25 +12,21 @@ public:
 	void ScreenCommon();
 
 
-	DirectXCommon* GetDxCommon()const { return dxCommon_; }
-	
+
+	DirectXCommon* GetCommon()const { return dxCommon_; }
 
 private:
 
 	//ルートシグネチャ
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature = nullptr;
-	
+
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState = nullptr;
 
 	DirectXCommon* dxCommon_;
-
 
 	//ルートシグネチャの作成
 	void CreateRootSignature();
 	//グラフィックスパイプラインの作成
 	void CreateGraphicsPipeline();
-
-	
-
 
 };

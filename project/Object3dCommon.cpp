@@ -1,24 +1,22 @@
-#include "SpriteCommon.h"
+#include "Object3dCommon.h"
 #include "Logger.h"
 #include "StringUtility.h"
 #include <iostream>
 
-
 using namespace StringUtility;
 using namespace Logger;
 
-void SpriteCommon::Initialize(DirectXCommon* dxCommon)
+void Object3dCommon::Initialize(DirectXCommon* dxCommon)
 {
 
-	//引数を受け取ってメンバ変数に記録する
+	//引数で受け取ってメンバ変数に記録する
 	dxCommon_ = dxCommon;
 
 	CreateGraphicsPipeline();
 
-
 }
 
-void SpriteCommon::ScreenCommon()
+void Object3dCommon::ScreenCommon()
 {
 
 	//RootSignatureを設定。PSOに設定しているけど別途設定が必要
@@ -29,7 +27,7 @@ void SpriteCommon::ScreenCommon()
 
 }
 
-void SpriteCommon::CreateRootSignature()
+void Object3dCommon::CreateRootSignature()
 {
 
 	std::ostream& logStream = std::cerr;
@@ -90,7 +88,7 @@ void SpriteCommon::CreateRootSignature()
 		assert(false);
 	}
 	//バイナリを元に生成
-	
+
 	hr = dxCommon_->GetDevice()->CreateRootSignature(0,
 		signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(),
 		IID_PPV_ARGS(&rootSignature));
@@ -99,7 +97,7 @@ void SpriteCommon::CreateRootSignature()
 
 }
 
-void SpriteCommon::CreateGraphicsPipeline()
+void Object3dCommon::CreateGraphicsPipeline()
 {
 
 	CreateRootSignature();

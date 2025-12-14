@@ -26,6 +26,8 @@
 #include "SpriteCommon.h"
 #include "Sprite.h"
 #include "TextureManager.h"
+#include "Object3dCommon.h"
+#include "Object3d.h"
 
 #include <externals/imgui/imgui_impl_dx12.h>
 #include <externals/imgui/imgui_impl_win32.h>
@@ -437,6 +439,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	dxCommon = new DirectXCommon();
 	dxCommon->Initialize(winApp);
 
+	//SpriteCommonの初期化
+	SpriteCommon* spriteCommon = nullptr;
+	//スプライト共通部の初期化
+	spriteCommon = new SpriteCommon;
+	spriteCommon->Initialize(dxCommon);
+
+
+	//3Dオブジェクト共通部
+	Object3dCommon* object3dCommon = nullptr;
+	//3Dオブジェクト共通部の初期化
+	object3dCommon = new Object3dCommon;
+	object3dCommon->Initialize(dxCommon);
+
 
 #pragma endregion
 
@@ -448,14 +463,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma endregion
 
-#pragma region SpriteCommonの初期化
 
-	SpriteCommon* spriteCommon = nullptr;
-	//スプライト共通部の初期化
-	spriteCommon = new SpriteCommon;
-	spriteCommon->Initialize(dxCommon);
-
-#pragma endregion
 
 	//Textureを読んで転送する
 	TextureManager::GetInstance()->LoadTexture("resources/uvChecker.png");
@@ -486,7 +494,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma endregion
 
+#pragma region 最初のシーンの初期化
 
+	Object3d* object3d = new Object3d();
+	object3d->Initialize();
+
+#pragma endregion
 
 
 
@@ -1004,8 +1017,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			sprites[i]->Update();
 		}
 
-		
-		
+
+
 
 
 		////transformSphere.rotate.y += 0.03f;
@@ -1049,7 +1062,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			sprites[i]->SetPosition(Vector2{ 0.0f + i * 200.0f,0.0f });
 		}
-		
+
 
 
 
@@ -1071,7 +1084,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			}
 		}
 
-		
+
 
 		if (ImGui::Checkbox("Flip X", &flipX))
 		{
@@ -1098,15 +1111,31 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//DirectXの描画基準。全ての描画に共通宇のグラッフィックスコマンドを積む
 		dxCommon->PreDraw();
 
+		//3Dオブジェクトの描画準備。3Dオブジェクトの描画に共通のグラフィックスコマンドを積む
+		object3dCommon->ScreenCommon();
+
+
+		//全てのObject3d個々の描画
+
+
+
 		//Spriteの描画基準。Spriteの描画の共通のグラッフィックスコマンドを積む
-		spriteCommon->DrawCommon();
+		spriteCommon->ScreenCommon();
 
 
-		////RootSignatureを設定。PSOに設定しているけど別途設定が必要
+		//全てのSprite個々の描画
+		for (uint32_t i = 0; i < sprites.size(); ++i)
+
+		{
+			sprites[0]->Draw();
+		}
+
+
+		//RootSignatureを設定。PSOに設定しているけど別途設定が必要
 		//dxCommon->GetCommandList()->SetGraphicsRootSignature(rootSignature.Get());
 		//dxCommon->GetCommandList()->SetPipelineState(graphicsPipelineState.Get());//PSOを設定
 		//dxCommon->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView);//VBVを設定
-		////形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
+		//形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
 		//dxCommon->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		////マテリアルCBufferの場所を設定
 		//dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
@@ -1135,11 +1164,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//dxCommon->GetCommandList()->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
 
 
-		for (uint32_t i = 0; i < sprites.size(); ++i)
-
-		{
-			sprites[0]->Draw();
-		}
+		
 
 
 
@@ -1168,6 +1193,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//音声データ解放
 	SoundUnload(&soundData1);
 
+	delete object3d;
+
+
 	//Sprite解放
 	for (uint32_t i = 0; i < sprites.size(); ++i)
 	{
@@ -1175,11 +1203,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		delete sprites[i];
 	}
 
-	//SpriteCommon解放
-	delete spriteCommon;
 
 	//TextureManager解放
 	TextureManager::GetInstance()->Finalize();
+
+
+	delete object3dCommon;
+
+	//SpriteCommon解放
+	delete spriteCommon;
 
 	//DirectX解放
 	delete dxCommon;
