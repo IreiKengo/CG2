@@ -37,7 +37,7 @@ public:
 		Matrix4x4 World;
 	};
 
-	void Initialize(SpriteCommon* spriteCommon, DirectXCommon* dxCommon, std::string textureFilePath);
+	void Initialize(SpriteCommon* spriteCommon, std::string textureFilePath);
 
 	void Update();
 

@@ -7,13 +7,13 @@
 
 using namespace math;
 
-void Sprite::Initialize(SpriteCommon* spriteCommon, DirectXCommon* dxCommon, std::string textureFilePath)
+void Sprite::Initialize(SpriteCommon* spriteCommon, std::string textureFilePath)
 {
 
 	//引数で受け取ってメンバ変数に記録する
 	this->spriteCommon = spriteCommon;
-	dxCommon_ = dxCommon;
-
+	dxCommon_ = spriteCommon->GetDxCommon();
+	
 
 	CreateVertexData();
 
