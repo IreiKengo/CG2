@@ -30,6 +30,7 @@
 #include "Object3d.h"
 #include "ModelCommon.h"
 #include "Model.h"
+#include"ModelManager.h"
 
 #include <externals/imgui/imgui_impl_dx12.h>
 #include <externals/imgui/imgui_impl_win32.h>
@@ -313,9 +314,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	spriteCommon = new SpriteCommon;
 	spriteCommon->Initialize(dxCommon);
 
-	ModelCommon* modelCommon = nullptr;
-	modelCommon = new ModelCommon;
-	modelCommon->Initialize(dxCommon);
 
 	//3Dオブジェクト共通部
 	Object3dCommon* object3dCommon = nullptr;
@@ -326,10 +324,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma endregion
 
-#pragma region TextreManagerの初期化
+#pragma region マネージャの初期化
 
 	//テクスチャマネージャの初期化
 	TextureManager::GetInstance()->Initialize(dxCommon);
+
+	//3Dモデルマネージャの初期化
+	ModelManager::GetInstance()->Initialize(dxCommon);
 
 
 #pragma endregion
@@ -367,24 +368,34 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	
 
+
 #pragma region 最初のシーンの初期化
 
-	Model* model = new Model();
-	model->Initialize(modelCommon);
+	//.objファイルからモデルを読み込む
+	ModelManager::GetInstance()->LoadModel("plane.obj");
+	ModelManager::GetInstance()->LoadModel("multiMesh.obj");
+	ModelManager::GetInstance()->LoadModel("multiMaterial.obj");
+	ModelManager::GetInstance()->LoadModel("axis.obj");
 
 	std::vector<Object3d*> objects;
 	for(int i = 0;i<2;++i)
 	{
 		Object3d* object3d = new Object3d();
 
+		std::string modelPath;
+		if (i % 2 == 0) {
+			modelPath = "axis.obj";
+		} else {
+
+			modelPath = "plane.obj";
+		}
 
 		object3d->Initialize(object3dCommon);
-		object3d->SetModel(model);
+		object3d->SetModel(modelPath);
 		objects.push_back(object3d);
 	}
 
-	/*Object3d* object3d = new Object3d();
-	object3d->Initialize(object3dCommon);*/
+	
 
 
 #pragma endregion
@@ -669,7 +680,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		delete objects[i];
 	}
 
-	delete model;
 
 	//Sprite解放
 	for (uint32_t i = 0; i < sprites.size(); ++i)
@@ -678,6 +688,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		delete sprites[i];
 	}
 
+	//Dモデルマネージャの終了
+	ModelManager::GetInstance()->Finalize();
 
 	//TextureManager解放
 	TextureManager::GetInstance()->Finalize();
@@ -685,7 +697,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	delete object3dCommon;
 
-	delete modelCommon;
 
 	//SpriteCommon解放
 	delete spriteCommon;

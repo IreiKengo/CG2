@@ -1,4 +1,5 @@
 #pragma once
+#include<string>
 #include <wrl.h>
 #include <d3d12.h>
 #include "Transform.h"
@@ -44,6 +45,7 @@ public:
 	void SetScale(const Vector3& scale) { this->transform.scale = scale; }
 	void SetRotate(const Vector3& rotate) { this->transform.rotate = rotate; }
 	void SetTranslate(const Vector3& translate) { this->transform.translate = translate; }
+	void SetModel(const std::string& filePath);
 
 	//getter
 	const Vector3& GetScale()const { return transform.scale; }

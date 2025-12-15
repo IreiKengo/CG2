@@ -8,7 +8,7 @@
 
 using namespace math;
 
-void Model::Initialize(ModelCommon* modelCommon)
+void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPath, const std::string& filename)
 {
 
 	modelCommon_ = modelCommon;
@@ -17,7 +17,7 @@ void Model::Initialize(ModelCommon* modelCommon)
 
 
 	////モデル読み込み
-	modelData = LoadObjFile("resources", "plane.obj");
+	modelData = LoadObjFile(directoryPath, filename);
 
 	CreateVertexData();
 

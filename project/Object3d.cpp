@@ -3,6 +3,7 @@
 #include "Matrix4x4Math.h"
 #include "TextureManager.h"
 #include "Model.h"
+#include "ModelManager.h"
 
 using namespace math;
 
@@ -62,6 +63,14 @@ void Object3d::Draw()
 		model->Draw();
 	}
 
+
+}
+
+void Object3d::SetModel(const std::string& filePath)
+{
+
+	//モデルを検索してセットする
+	model = ModelManager::GetInstance()->FindModel(filePath);
 
 }
 
