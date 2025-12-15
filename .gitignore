@@ -325,3 +325,7 @@ imgui.ini
 **/imgui.ini
 generated/
 project/externals/generated
+
+git rm --cached project/imgui.ini
+git rm --cached -r generated
+git rm --cached -r project/externals/generated
