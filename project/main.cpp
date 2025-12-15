@@ -522,27 +522,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		ImGui::SliderAngle("CameraTransrotateY", &cameraTransform.rotate.y);
 		ImGui::SliderAngle("CameraTransrotateZ", &cameraTransform.rotate.z);
 
-		//ImGui::SliderAngle("ObjTransrotateX", &transformObj.rotate.x);
-		//ImGui::SliderAngle("ObjTransrotateY", &transformObj.rotate.y);
-		//ImGui::SliderAngle("ObjTransrotateZ", &transformObj.rotate.z);
-
-
-		//ImGui::ColorEdit4("Color", &(*materialData).color.x);
-
-		//ImGui::Checkbox("useLighting", &useLighting);
-		//ImGui::ColorEdit4("LightColor", &(*directionalLightData).color.x);
-		//ImGui::SliderFloat3("LightDirection", &directionalLightData->direction.x, -1.0f, 1.0f);
-		//ImGui::DragFloat("intensity", &directionalLightData->intensity);
+		
 
 		for (uint32_t i = 0; i < sprites.size(); ++i)
 		{
 			sprites[i]->SetPosition(Vector2{ 0.0f + i * 200.0f,0.0f });
 		}
 
-		for (uint32_t i = 0; i < objects.size(); ++i)
-		{
-			objects[i]->SetTranslate({ 0.0f + i * 2.0f,0.0f,0.0f });
-		}
+		
+			objects[0]->SetTranslate({ -1.0f,0.0f,0.0f });
+			objects[1]->SetTranslate({ 1.0f,0.0f,0.0f });
+		
 
 
 		ImGui::Checkbox("Use MonsterBall", &useMonsterBall);
@@ -570,13 +560,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			sprites[0]->SetIsFlipX(flipX);
 		}
 
-		//ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
-		//ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
-		//ImGui::SliderAngle("UVRotate", &uvTransformSprite.rotate.z);
+		
 
 		ImGui::End();
 
-		//useLighting ? materialData->enableLighting = true : materialData->enableLighting = false;
+		
 
 		////開発用UIの処理。実際に開発用のUIを出す場合はここをゲーム固有の処理に書き換える
 		ImGui::ShowDemoWindow();
@@ -613,43 +601,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 
-		//RootSignatureを設定。PSOに設定しているけど別途設定が必要
-		//dxCommon->GetCommandList()->SetGraphicsRootSignature(rootSignature.Get());
-		//dxCommon->GetCommandList()->SetPipelineState(graphicsPipelineState.Get());//PSOを設定
-		//dxCommon->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView);//VBVを設定
-		//形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
-		//dxCommon->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		////マテリアルCBufferの場所を設定
-		//dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
-		////wvp用のCBufferの場所を設定
-		//dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
-		//dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(3, directionalLightResource->GetGPUVirtualAddress());
-
-		////SRVのDescriptorTableの先頭を設定。2はrootParameter[2]である。
-		//dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
-
-		//描画！（DrawCall/ドローコール）。３頂点で１つのインスタンス。インスタンスについては今後
-		//dxCommon->GetCommandList()->DrawInstanced(6, 1, 0, 0);
-
-
-
-
-
-		//Obj用の描画。変更が必要なものだけ変更する
-		//dxCommon->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferViewObj);//VBVを設定
-		////dxCommon->GetCommandList()->IASetIndexBuffer(&indexBufferViewObj);
-		////TransformationMatrixCBufferの場所を設定
-		//dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationResourcesObj->GetGPUVirtualAddress());
-		////dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
-		//DirectX::ScratchImage mipImages2 = dxCommon->LoadTexture(modelData.material.textureFilePath);
-		////球の描画
-		//dxCommon->GetCommandList()->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
-
-
-
-
-
-
+		
+		
 
 		//実際のdxCommon->GetCommandList()のImGuiの描画コマンドを積む
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dxCommon->GetCommandList());
