@@ -322,3 +322,6 @@ Dumps/
 *.log
 /logs
 imgui.ini
+**/imgui.ini
+generated/
+project/externals/generated
