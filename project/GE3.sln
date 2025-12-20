@@ -15,9 +15,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{DDB4EF12-CC4E-5E88-E6FC-71A802F4DE97}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "imgui", "imgui", "{E439351D-2C14-4FB7-A13C-73ED41B5BF0A}"
-	ProjectSection(SolutionItems) = preProject
-		Sprite.cpp = Sprite.cpp
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

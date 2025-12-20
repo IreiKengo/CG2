@@ -11,6 +11,7 @@
 class Object3dCommon;
 class DirectXCommon;
 class Model;
+class Camera;
 
 //3Dオブジェクト
 class Object3d
@@ -46,11 +47,14 @@ public:
 	void SetRotate(const Vector3& rotate) { this->transform.rotate = rotate; }
 	void SetTranslate(const Vector3& translate) { this->transform.translate = translate; }
 	void SetModel(const std::string& filePath);
+	void SetCamera(Camera* camera) { this->camera = camera; }
+	
 
 	//getter
 	const Vector3& GetScale()const { return transform.scale; }
 	const Vector3& GetRotate()const { return transform.rotate; }
 	const Vector3& GetTranslate()const { return transform.translate; }
+	
 
 
 private:
@@ -69,12 +73,13 @@ private:
 	DirectionalLight* directionalLightData = nullptr;
 
 	Transform transform;
-	Transform cameraTransform;
-
 
 	DirectXCommon* dxCommon_ = nullptr;
 
 	Model* model = nullptr;
+
+	Camera* camera = nullptr;
+	
 	
 	//座標返還行列データ作成
 	void CreateTransformationMatrixData();

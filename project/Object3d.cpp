@@ -4,6 +4,7 @@
 #include "TextureManager.h"
 #include "Model.h"
 #include "ModelManager.h"
+#include "Camera.h"
 
 using namespace math;
 
@@ -13,7 +14,7 @@ void Object3d::Initialize(Object3dCommon* object3dCommon)
 
 	//引数で受け取ってメンバ変数に記録する
 	this->object3dCommon = object3dCommon;
-	
+
 	dxCommon_ = object3dCommon->GetCommon();
 
 
@@ -21,13 +22,10 @@ void Object3d::Initialize(Object3dCommon* object3dCommon)
 
 	CreateDirectionalLightData();
 
-
-	
-
 	//Transform変数を作る
 	transform = { {1.0f,1.0f,1.0f},{0.0f,3.156f,0.0f},{0.0f,0.0f,0.0f} };
-	cameraTransform = { {1.0f,1.0f,1.0f},{0.3f,0.0f,0.0f},{0.0f,4.0f,-10.0f} };
 
+	this->camera = object3dCommon->GetDefaultCamera();
 
 }
 
@@ -37,10 +35,15 @@ void Object3d::Update()
 	transform.rotate.y += 0.03f;
 	////三角形用のWVPMatrixの作成
 	Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
-	Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
-	Matrix4x4 viewMatrix = Inverse(cameraMatrix);
-	Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(WinApp::kClientWidth) / float(WinApp::kClientHeight), 0.1f, 100.0f);
-	Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
+	Matrix4x4 worldViewProjectionMatrix;
+	if (camera)
+	{
+		const Matrix4x4& viewProjectionMatrix = camera->GetViewProjectionMatrix();
+		worldViewProjectionMatrix = Multiply(worldMatrix, viewProjectionMatrix);
+	} else
+	{
+		worldViewProjectionMatrix = worldMatrix;
+	}
 	transformationMatrixData->WVP = worldViewProjectionMatrix;
 	transformationMatrixData->World = worldMatrix;
 
@@ -51,12 +54,12 @@ void Object3d::Update()
 void Object3d::Draw()
 {
 
-	
+
 	//座標変換行列CBufferの場所を設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResources->GetGPUVirtualAddress());
 	//平行光源CBufferの場所を設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(3, directionalLightResource->GetGPUVirtualAddress());
-	
+
 	//3Dモデルが割り当てられていれば描画する
 	if (model)
 	{

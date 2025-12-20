@@ -31,6 +31,7 @@
 #include "ModelCommon.h"
 #include "Model.h"
 #include"ModelManager.h"
+#include "Camera.h"
 
 #include <externals/imgui/imgui_impl_dx12.h>
 #include <externals/imgui/imgui_impl_win32.h>
@@ -298,6 +299,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma endregion
 
+#pragma region カメラの初期化
+	Camera* camera = new Camera();
+	camera->SetRotate({ 0.0f,0.0f,0.0f });
+	camera->SetTranslate({ 0.0f,0.0f,-10.0f });
+#pragma endregion 
 
 #pragma region DirectXの初期化
 
@@ -319,6 +325,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	Object3dCommon* object3dCommon = nullptr;
 	//3Dオブジェクト共通部の初期化
 	object3dCommon = new Object3dCommon;
+	object3dCommon->SetDefaultCamera(camera);
 	object3dCommon->Initialize(dxCommon);
 
 
@@ -366,8 +373,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma endregion
 
-	
-
 
 #pragma region 最初のシーンの初期化
 
@@ -378,7 +383,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	ModelManager::GetInstance()->LoadModel("axis.obj");
 
 	std::vector<Object3d*> objects;
-	for(int i = 0;i<2;++i)
+	for (int i = 0; i < 2; ++i)
 	{
 		Object3d* object3d = new Object3d();
 
@@ -395,14 +400,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		objects.push_back(object3d);
 	}
 
-	
+
 
 
 #pragma endregion
 
 
-	//カメラ
-	Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-10.0f} };
+
 
 
 	//SRVの切り替え
@@ -453,9 +457,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 
-		//入力の更新
-		input->Update();
-
 		////数字の0キーが押されていたら
 		//if (input->TriggerKey(DIK_0))
 		//{
@@ -495,41 +496,40 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//wvpData->WVP = worldViewProjectionMatrix;
 		//wvpData->World = worldMatrix;
 
-		for (uint32_t i = 0; i < sprites.size(); ++i)
-		{
-			sprites[i]->Update();
-		}
-
-
-		for (uint32_t i = 0; i < objects.size(); ++i)
-		{
-			objects[i]->Update();
-		}
-
-
-		
-
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
 		ImGui::Begin("Settings");
-		ImGui::DragFloat3("CameraTranslate", &cameraTransform.translate.x);
-		ImGui::SliderAngle("CameraTransrotateX", &cameraTransform.rotate.x);
-		ImGui::SliderAngle("CameraTransrotateY", &cameraTransform.rotate.y);
-		ImGui::SliderAngle("CameraTransrotateZ", &cameraTransform.rotate.z);
 
-		
+		Transform cameraTransform;
+		cameraTransform.rotate = camera->GetRotate();
+		cameraTransform.translate = camera->GetTranslate();
+
+		if (ImGui::DragFloat3("CameraTranslate", &cameraTransform.translate.x,0.1f)) {
+			camera->SetTranslate(cameraTransform.translate);
+		}
+
+		ImGui::SliderAngle("CameraTransRotateX", &cameraTransform.rotate.x, -89.0f, 89.0f);
+		ImGui::SliderAngle("CameraTransRotateY", &cameraTransform.rotate.y, -180.0f, 180.0f);
+		ImGui::SliderAngle("CameraTransRotateZ", &cameraTransform.rotate.z);
+
+		camera->SetRotate(cameraTransform.rotate);
+
+
+
+
+
 
 		for (uint32_t i = 0; i < sprites.size(); ++i)
 		{
 			sprites[i]->SetPosition(Vector2{ 0.0f + i * 200.0f,0.0f });
 		}
 
-		
-			objects[0]->SetTranslate({ -1.0f,0.0f,0.0f });
-			objects[1]->SetTranslate({ 1.0f,0.0f,0.0f });
-		
+
+		objects[0]->SetTranslate({ -1.0f,0.0f,0.0f });
+		objects[1]->SetTranslate({ 1.0f,0.0f,0.0f });
+
 
 
 		ImGui::Checkbox("Use MonsterBall", &useMonsterBall);
@@ -557,11 +557,33 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			sprites[0]->SetIsFlipX(flipX);
 		}
 
-		
+
 
 		ImGui::End();
 
-		
+		//入力の更新
+		input->Update();
+
+		//カメラの更新
+		camera->Update();
+
+		for (uint32_t i = 0; i < sprites.size(); ++i)
+		{
+			sprites[i]->Update();
+		}
+
+
+		for (uint32_t i = 0; i < objects.size(); ++i)
+		{
+			objects[i]->Update();
+		}
+
+
+
+
+
+
+
 
 		////開発用UIの処理。実際に開発用のUIを出す場合はここをゲーム固有の処理に書き換える
 		ImGui::ShowDemoWindow();
@@ -598,8 +620,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 
-		
-		
+
+
 
 		//実際のdxCommon->GetCommandList()のImGuiの描画コマンドを積む
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dxCommon->GetCommandList());
@@ -624,6 +646,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	xAudio2.Reset();
 	//音声データ解放
 	SoundUnload(&soundData1);
+
+	delete camera;
 
 	for (uint32_t i = 0; i < objects.size(); ++i)
 	{
