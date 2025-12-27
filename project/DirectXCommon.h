@@ -25,9 +25,7 @@ public:
 	void PostDraw();
 	
 
-	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCPUDescriptorHandle(uint32_t index);
-
-	D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGPUDescriptorHandle(uint32_t index);
+	
 
 
 	//getter
@@ -48,8 +46,8 @@ public:
 	Microsoft::WRL::ComPtr<ID3D12Resource> UploadTextureData(const Microsoft::WRL::ComPtr<ID3D12Resource>& texture, const DirectX::ScratchImage& mipImages);
 	
 
-	//最大SRV数（最大テクスチャ枚数）
-	static const uint32_t kMaxSRVCount;
+	//デスクリプタヒープ生成関数
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDesctiptors, bool shaderVisible);
 
 private:
 
@@ -72,13 +70,11 @@ private:
 //	HRESULT hr;
 	//各種デスクリプタサイズ
 	uint32_t descriptorSizeRTV;
-	uint32_t descriptorSizeSRV;
 	uint32_t descriptorSizeDSV;
 
 	//RTVのデスクリプターヒープ
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap;
-	//SRVのデスクリプターヒープ
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> srvDescriptorHeap;
+	
 	//DSVのデスクリプターヒープ
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvDescriptorHeap;
 
@@ -122,6 +118,7 @@ std::chrono::steady_clock::time_point reference_;
 
 
 
+
 //デバイスの初期化
 void InitializeDevice();
 
@@ -156,7 +153,7 @@ void InitializescissorRect();
 void CreateDXCCompiler();
 
 //ImGuiの初期化
-void InitializeImGui();
+//void InitializeImGui();
 
 //FPS固定初期化
 void InitializeFixFPS();
@@ -164,8 +161,7 @@ void InitializeFixFPS();
 void UpdateFixFPS();
 
 
-//デスクリプタヒープ生成関数
-Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDesctiptors, bool shaderVisible);
+
 
 
 static D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index);

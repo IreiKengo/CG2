@@ -32,6 +32,7 @@
 #include "Model.h"
 #include"ModelManager.h"
 #include "Camera.h"
+#include "SrvManager.h"
 
 #include <externals/imgui/imgui_impl_dx12.h>
 #include <externals/imgui/imgui_impl_win32.h>
@@ -328,13 +329,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	object3dCommon->SetDefaultCamera(camera);
 	object3dCommon->Initialize(dxCommon);
 
+	SrvManager* srvManager = nullptr;
+	//SRVマネージャーの初期化
+	srvManager = new SrvManager();
+	srvManager->Initialize(dxCommon);
+
+	//テクスチャマネージャの初期化
+	TextureManager::GetInstance()->Initialize(dxCommon,srvManager);
+
 
 #pragma endregion
 
 #pragma region マネージャの初期化
 
-	//テクスチャマネージャの初期化
-	TextureManager::GetInstance()->Initialize(dxCommon);
 
 	//3Dモデルマネージャの初期化
 	ModelManager::GetInstance()->Initialize(dxCommon);
@@ -345,16 +352,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 	//Textureを読んで転送する
-	TextureManager::GetInstance()->LoadTexture("resources/uvChecker.png");
+	//TextureManager::GetInstance()->LoadTexture("resources/uvChecker.png");
 
 	//２枚目のTextureを読んで転送する
-	TextureManager::GetInstance()->LoadTexture("resources/monsterBall.png");
+	//TextureManager::GetInstance()->LoadTexture("resources/monsterBall.png");
 
 
 #pragma region スプライトの初期化
 
 	std::vector<Sprite*> sprites;
-	for (uint32_t i = 0; i < 5; ++i)
+	for (uint32_t i = 0; i < 1; ++i)
 	{
 		Sprite* sprite = new Sprite();
 
@@ -389,10 +396,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		std::string modelPath;
 		if (i % 2 == 0) {
-			modelPath = "axis.obj";
+			modelPath = "plane.obj";
 		} else {
 
-			modelPath = "plane.obj";
+			modelPath = "axis.obj";
 		}
 
 		object3d->Initialize(object3dCommon);
@@ -496,7 +503,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//wvpData->WVP = worldViewProjectionMatrix;
 		//wvpData->World = worldMatrix;
 
-		ImGui_ImplDX12_NewFrame();
+		/*ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
@@ -527,8 +534,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 
-		objects[0]->SetTranslate({ -1.0f,0.0f,0.0f });
-		objects[1]->SetTranslate({ 1.0f,0.0f,0.0f });
+		
 
 
 
@@ -559,7 +565,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 
-		ImGui::End();
+		ImGui::End();*/
 
 		//入力の更新
 		input->Update();
@@ -572,7 +578,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			sprites[i]->Update();
 		}
 
-
+		objects[0]->SetTranslate({ -1.0f,-1.0f,0.0f });
+		objects[1]->SetTranslate({ 1.0f,-1.0f,0.0f });
 		for (uint32_t i = 0; i < objects.size(); ++i)
 		{
 			objects[i]->Update();
@@ -586,16 +593,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 		////開発用UIの処理。実際に開発用のUIを出す場合はここをゲーム固有の処理に書き換える
-		ImGui::ShowDemoWindow();
+		//ImGui::ShowDemoWindow();
 
 
 		////ImGuiの内部コマンドを生成する
-		ImGui::Render();
+		//ImGui::Render();
 
 
 
 		//DirectXの描画基準。全ての描画に共通宇のグラッフィックスコマンドを積む
 		dxCommon->PreDraw();
+		srvManager->PreDraw();
 
 		//3Dオブジェクトの描画準備。3Dオブジェクトの描画に共通のグラフィックスコマンドを積む
 		object3dCommon->ScreenCommon();
@@ -624,7 +632,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 		//実際のdxCommon->GetCommandList()のImGuiの描画コマンドを積む
-		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dxCommon->GetCommandList());
+		//ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dxCommon->GetCommandList());
 
 		//描画後処理
 		dxCommon->PostDraw();
@@ -638,9 +646,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 
-	ImGui_ImplDX12_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
+	//ImGui_ImplDX12_Shutdown();
+	//ImGui_ImplWin32_Shutdown();
+	//ImGui::DestroyContext();
 
 	//XAudio2解放
 	xAudio2.Reset();
@@ -668,6 +676,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//TextureManager解放
 	TextureManager::GetInstance()->Finalize();
 
+	delete srvManager;
 
 	delete object3dCommon;
 

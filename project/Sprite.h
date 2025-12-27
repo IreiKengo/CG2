@@ -98,16 +98,18 @@ private:
 		{1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f},
 	};
 
+	std::string textureFilePath_;
+
 
 	//座標
-	Vector2 position = { 500.0f,100.0f };
+	Vector2 position = { 0.0f,0.0f };
 	//回転
 	float rotation = 0.0f;
 	//サイズ
 	Vector2 size = { 100.0f,100.0f };
 
 	//テクスチャ番号
-	uint32_t textureIndex = 0;
+	//uint32_t textureIndex = 0;
 
 	//アンカーポイント
 	Vector2 anchorPoint = { 0.0f,0.0f };

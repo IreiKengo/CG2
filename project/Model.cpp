@@ -26,8 +26,8 @@ void Model::Initialize(ModelCommon* modelCommon, const std::string& directoryPat
 	//.objの参照しているテクスチャファイル読み込み
 	TextureManager::GetInstance()->LoadTexture(modelData.material.textureFilePath);
 	//読み込んだテクスチャの番号を取得
-	modelData.material.textureIndex =
-		TextureManager::GetInstance()->GetTextureIndexByFilePath(modelData.material.textureFilePath);
+	/*modelData.material.textureIndex =
+		TextureManager::GetInstance()->GetSrvIndex(modelData.material.textureFilePath);*/
 
 }
 
@@ -40,7 +40,7 @@ void Model::Draw()
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 
 	//SRVのDescriptorTableの先頭を設定
-	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetSrvHandleGPU(modelData.material.textureIndex));
+	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetSrvHandleGPU(modelData.material.textureFilePath));
 
 	//描画！（DrawCall/ドローコール）
 	dxCommon_->GetCommandList()->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
