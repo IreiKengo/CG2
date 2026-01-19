@@ -189,3 +189,4 @@ void Object3dCommon::CreateGraphicsPipeline()
 		IID_PPV_ARGS(&graphicsPipelineState));
 
 }
+
