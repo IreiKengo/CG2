@@ -33,6 +33,8 @@
 #include"ModelManager.h"
 #include "Camera.h"
 #include "SrvManager.h"
+#include "ParticleManager.h"
+#include "ParticleEmitter.h"
 
 #include <externals/imgui/imgui_impl_dx12.h>
 #include <externals/imgui/imgui_impl_win32.h>
@@ -412,9 +414,34 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma endregion
 
+	ParticleManager::GetInstance()->Initialize(dxCommon, srvManager);
+	ParticleManager::GetInstance()->SetCamera(camera);
 
+	ParticleManager::GetInstance()->CreateParticleGroup(
+		"circle",
+		"resources/circle.png"
+	);
 
+	ParticleEmitter* particleCircle = new ParticleEmitter
+	(
+		"circle",
+		Vector3{ 0, 0, 0 },
+		5,
+		0.1f
+	);
 
+	ParticleManager::GetInstance()->CreateParticleGroup(
+		"uvChecker",              //新しい名前にする
+		"resources/uvChecker.png" //使いたい画像のパス
+	);
+
+	
+	ParticleEmitter* particleChecker = new ParticleEmitter(
+		"uvChecker",             
+		Vector3{ 2.0f, 0, 0 },    // 位置を少しずらすと見やすいです
+		5,                        // 発生数
+		0.1f                      // 発生頻度
+	);
 
 	//SRVの切り替え
 	bool useMonsterBall = false;
@@ -585,11 +612,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			objects[i]->Update();
 		}
 
+		float deltaTime = 1.0f / 60.0f; // 本来は実時間計測
 
 
 
-
-
+		particleCircle->Update(deltaTime);
+		particleChecker->Update(deltaTime);
+		ParticleManager::GetInstance()->Update();
 
 
 		////開発用UIの処理。実際に開発用のUIを出す場合はここをゲーム固有の処理に書き換える
@@ -612,7 +641,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//全てのObject3d個々の描画
 		for (uint32_t i = 0; i < objects.size(); ++i)
 		{
-			objects[i]->Draw();
+			//objects[i]->Draw();
 
 		}
 
@@ -624,10 +653,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		for (uint32_t i = 0; i < sprites.size(); ++i)
 
 		{
-			sprites[0]->Draw();
+			//sprites[0]->Draw();
 		}
 
-
+		ParticleManager::GetInstance()->Draw();
 
 
 
@@ -654,6 +683,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	xAudio2.Reset();
 	//音声データ解放
 	SoundUnload(&soundData1);
+
+	delete particleChecker;
+	particleChecker = nullptr;
+
+	delete particleCircle;
+	particleCircle = nullptr;
+
+	ParticleManager::GetInstance()->Finalize();
 
 	delete camera;
 

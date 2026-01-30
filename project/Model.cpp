@@ -5,6 +5,7 @@
 #include "Matrix4x4Math.h"
 #include "TextureManager.h"
 #include "ModelCommon.h"
+#include "Camera.h"
 
 using namespace math;
 

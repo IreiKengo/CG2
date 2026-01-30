@@ -33,7 +33,7 @@ void Object3d::Update()
 {
 
 	transform.rotate.y += 0.03f;
-	////三角形用のWVPMatrixの作成
+	
 	Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
 	Matrix4x4 worldViewProjectionMatrix;
 	if (camera)

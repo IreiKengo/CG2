@@ -6,6 +6,8 @@
 #include <iostream>
 #include "Matrix4x4Math.h"
 #include "TextureManager.h"
+#include <numbers>
+#include "Camera.h"
 
 
 using namespace StringUtility;
@@ -13,14 +15,22 @@ using namespace Logger;
 using namespace math;
 
 
-void ParticleManager::Initialize(DirectXCommon*dxCommon,SrvManager*srvManager)
+
+ParticleManager* ParticleManager::GetInstance()
+{
+	static ParticleManager instance;
+	return &instance;
+}
+
+
+void ParticleManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
 
 	dxCommon_ = dxCommon;
 	srvManager_ = srvManager;
 
 	std::random_device seedGenerator;
-	std::mt19937 randomEngine(seedGenerator());
+	randomEngine_ = std::mt19937(seedGenerator());
 
 	CreateGraphicsPipeline();
 
@@ -30,7 +40,7 @@ void ParticleManager::Initialize(DirectXCommon*dxCommon,SrvManager*srvManager)
 	modelData.vertices.push_back({ .position = {1.0f,-1.0f,0.0f,1.0f},.texCoord = {0.0f,1.0f},.normal = {0.0f,0.0f,1.0f} });//左下
 	modelData.vertices.push_back({ .position = {-1.0f,1.0f,0.0f,1.0f},.texCoord = {1.0f,0.0f},.normal = {0.0f,0.0f,1.0f} });//右上
 	modelData.vertices.push_back({ .position = {-1.0f,-1.0f,0.0f,1.0f},.texCoord = {1.0f,1.0f},.normal = {0.0f,0.0f,1.0f} });//右下
-	
+
 
 	//頂点リソース
 	vertexResource = dxCommon->CreateBufferResource(sizeof(VertexData) * modelData.vertices.size());
@@ -47,14 +57,111 @@ void ParticleManager::Initialize(DirectXCommon*dxCommon,SrvManager*srvManager)
 	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));//書き込むためのアドレスを取得
 	std::memcpy(vertexData, modelData.vertices.data(), sizeof(VertexData) * modelData.vertices.size());//頂点データをリソースにコピー
 
+	accelerationField.acceleration = { -10.0f,0.0f,0.0f };
+	accelerationField.area.min = { -5.0f,-5.0f,-5.0f };
+	accelerationField.area.max = { 1.0f,1.0f,1.0f };
+
+
+	materialResource = dxCommon_->CreateBufferResource(sizeof(Material));
+	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
+	materialData->color = { 1,1,1,1 };
+	materialData->uvTransform = MakeIdentity4x4();
 
 }
 
 void ParticleManager::Update()
 {
+	//ビルボード行列の計算
+	Matrix4x4 backToFrontMatrix = MakeRotateYMatrix(std::numbers::pi_v<float>);
+	Matrix4x4 billboardMatrix = Multiply(backToFrontMatrix, camera_->GetWorldMatrix());
+	billboardMatrix.m[3][0] = 0.0f;
+	billboardMatrix.m[3][1] = 0.0f;
+	billboardMatrix.m[3][2] = 0.0f;
+
+	//ビュー行列とプロジェクション行列をカメラから取得
+	Matrix4x4 viewMatrix = camera_->GetViewMatrix();
+	Matrix4x4 projectionMatrix = camera_->GetProjectionMatrix();
+
+	//全てのパーティクルグループについて処理する
+	//グループ内の全てのパーティクルについて処理する
+	for (auto& [groupName, group] : particleGroups)
+	{
+		group.numInstance = 0;
+
+		for (auto particleIterator = group.particles.begin(); particleIterator != group.particles.end(); )
+		{
+			//寿命に達していたらグループから外す
+			if ((*particleIterator).lifeTime <= (*particleIterator).currentTime)//生存期間を過ぎていたら更新せず描画対象にしない
+			{
+				particleIterator = group.particles.erase(particleIterator);//生存時間が過ぎたParticleはlistから消す。戻り値が次のイテレータとなる
+				continue;
+			}
+
+			//場の影響を計算（加速）
+			//Fieldの範囲内のParticleには加速度を適用する
+			if (IsCollision(accelerationField.area, (*particleIterator).transform.translate))
+			{
+				(*particleIterator).velocity += accelerationField.acceleration * kDeltaTime;
+			}
+
+			//移動処理（速度を座標に加算）
+			(*particleIterator).transform.translate += (*particleIterator).velocity * kDeltaTime;
+			//経過時間を加算
+			(*particleIterator).currentTime += kDeltaTime;//経過時間を足す
+
+			Matrix4x4 scaleMatrix = MakeScaleMatrix((*particleIterator).transform.scale);
+			Matrix4x4 translateMatrix = MakeTranslateMatrix((*particleIterator).transform.translate);
+
+			//ワールド行列を計算
+			Matrix4x4 worldMatrix = scaleMatrix * billboardMatrix * translateMatrix;
+
+			//ワールドビュープロジェクション行列を合成
+			Matrix4x4 worldViewProjectionMatrixParticle = Multiply(Multiply(worldMatrix, viewMatrix), projectionMatrix);
 
 
+			float alpha = 1.0f - ((*particleIterator).currentTime / (*particleIterator).lifeTime);
 
+			//インスタンシング用データ1個分の書き込み
+			if (group.numInstance < kNumMaxInstance)
+			{
+				group.instancingData[group.numInstance].WVP = worldViewProjectionMatrixParticle;
+
+				group.instancingData[group.numInstance].World = worldMatrix;
+				group.instancingData[group.numInstance].color = (*particleIterator).color;
+				group.instancingData[group.numInstance].color.w = alpha;
+				++group.numInstance;//生きているParticleの数を1つカウントする
+			}
+
+
+			++particleIterator;//次のイテレータに進める
+
+		}
+
+	}
+
+	//全パーティクルグループ内の全パーティクルについて二重for文で処理する
+
+}
+
+void ParticleManager::Draw()
+{
+	dxCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature.Get());
+	dxCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState.Get());//PSOを設定
+	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView);//VBVを設定
+	for (auto& [groupName, group] : particleGroups)
+	{
+		dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0,materialResource->GetGPUVirtualAddress());
+		//インスタンシングデータのSRVのDescriptorTableを設定
+		dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(1, srvManager_->GetGPUDescriptorHandle(group.instancingSrvIndex));
+		//テクスチャのSRVのDescriptorTableを設定
+		dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, srvManager_->GetGPUDescriptorHandle(group.materialData.srvIndex));
+		if (group.numInstance == 0) continue;
+		//DrawCall(インスタンシング描画)
+		dxCommon_->GetCommandList()->DrawInstanced(UINT(modelData.vertices.size()), group.numInstance, 0, 0);
+
+	}
+	
 }
 
 void ParticleManager::CreateRootSignature()
@@ -131,7 +238,7 @@ void ParticleManager::CreateRootSignature()
 	}
 
 	//バイナリを元に生成
-	
+
 	hr = dxCommon_->GetDevice()->CreateRootSignature(0,
 		signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(),
 		IID_PPV_ARGS(&rootSignature));
@@ -229,7 +336,7 @@ void ParticleManager::CreateGraphicsPipeline()
 	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 	//実際に生成
-	
+
 	HRESULT hr = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc,
 		IID_PPV_ARGS(&graphicsPipelineState));
 
@@ -237,31 +344,31 @@ void ParticleManager::CreateGraphicsPipeline()
 
 }
 
-ParticleManager::Particle ParticleManager::MakeNewParticle(std::mt19937& randomEngine, const Vector3& translate)
+ParticleManager::Particle ParticleManager::MakeNewParticle(const Vector3& translate)
 {
 
 	std::uniform_real_distribution <float> distribution(-1.0f, 1.0f);
 	Particle particle;
 	particle.transform.scale = { 1.0f,1.0f,1.0f };
 	particle.transform.rotate = { 0.0f,0.0f,0.0f };
-	Vector3 randomTranslate{ distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
+	Vector3 randomTranslate{ distribution(randomEngine_),distribution(randomEngine_),distribution(randomEngine_) };
 	particle.transform.translate = translate + randomTranslate;
-	particle.velocity = { distribution(randomEngine),distribution(randomEngine),distribution(randomEngine) };
+	particle.velocity = { distribution(randomEngine_),distribution(randomEngine_),distribution(randomEngine_) };
 
 	//色
 	std::uniform_real_distribution<float> distColor(0.0f, 1.0f);
-	particle.color = { distColor(randomEngine),distColor(randomEngine) ,distColor(randomEngine),1.0f };
+	particle.color = { distColor(randomEngine_),distColor(randomEngine_) ,distColor(randomEngine_),1.0f };
 
 	//生存時間
 	std::uniform_real_distribution<float> distTime(1.0f, 3.0f);
-	particle.lifeTime = distTime(randomEngine);
+	particle.lifeTime = distTime(randomEngine_);
 	particle.currentTime = 0;
 
 	return particle;
 
 }
 
-void ParticleManager::CreateParticleGroup(const std::string name, const std::string textureFilePath)
+void ParticleManager::CreateParticleGroup(const std::string name,const std::string textureFilePath)
 {
 
 	//登録済みの名前かチェックしてassert
@@ -278,14 +385,14 @@ void ParticleManager::CreateParticleGroup(const std::string name, const std::str
 	// マテリアルデータにテクスチャのSRVインデックスを記録
 	particleGroup.materialData.srvIndex = TextureManager::GetInstance()->GetSrvIndex(textureFilePath);
 	// インスタンシング用リソースの生成
-	
+
 	particleGroup.instancingSrvIndex = srvManager_->Allocate();
 
 	//Instancing用のParticleForGPUリソースを作る
 	particleGroup.instancingResource =
 		dxCommon_->CreateBufferResource(sizeof(ParticleForGPU) * kNumMaxInstance);
 	//書き込むためのアドレスを取得
-	
+
 	particleGroup.instancingResource->Map(0, nullptr, reinterpret_cast<void**>(&particleGroup.instancingData));
 	//単位行列を書き込んでおく
 	for (uint32_t index = 0; index < kNumMaxInstance; ++index)
@@ -296,7 +403,8 @@ void ParticleManager::CreateParticleGroup(const std::string name, const std::str
 
 	}
 	// インスタンシング用にSRVを確保してSRVインデックスを記録
-	
+	D3D12_SHADER_RESOURCE_VIEW_DESC instancingSrvDesc{};
+
 	instancingSrvDesc.Format = DXGI_FORMAT_UNKNOWN;
 	instancingSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	instancingSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
@@ -308,7 +416,69 @@ void ParticleManager::CreateParticleGroup(const std::string name, const std::str
 	D3D12_GPU_DESCRIPTOR_HANDLE instancingSrvHandleGPU = srvManager_->GetGPUDescriptorHandle(particleGroup.instancingSrvIndex);
 	dxCommon_->GetDevice()->CreateShaderResourceView(particleGroup.instancingResource.Get(), &instancingSrvDesc, instancingSrvHandleCPU);
 
-	this->particleGroups[name] = particleGroup;
-	
+	particleGroups[name] = std::move(particleGroup);
+
+
+}
+
+void ParticleManager::Emit(const std::string name, const Vector3& position, uint32_t count)
+{
+
+	//登録済みの名前かチェックしてassert
+	assert(!name.empty());
+
+	//新たなパーティクルを作成し、指定されたパーティクルグループに登録
+
+	auto it = particleGroups.find(name);
+	assert(it != particleGroups.end()); // グループ未作成なら止める
+
+	// マップからグループの参照を取得
+	ParticleGroup& group = it->second;
+
+	// 指定された数（count）だけパーティクルを生成して追加
+	for (uint32_t i = 0; i < count; ++i)
+	{
+		// 新たなパーティクルを作成
+		// MakeNewParticle内部で座標(position)にランダムなオフセットや速度が付与される
+		Particle newParticle = MakeNewParticle(position);
+
+		// 指定されたパーティクルグループのリストに登録
+		group.particles.push_back(newParticle);
+	}
+
+}
+
+bool ParticleManager::IsCollision(const AABB& aabb, const Vector3& point)
+{
+
+	return (point.x >= aabb.min.x && point.x <= aabb.max.x) &&
+		(point.y >= aabb.min.y && point.y <= aabb.max.y) &&
+		(point.z >= aabb.min.z && point.z <= aabb.max.z);
+
+}
+
+
+void  ParticleManager::Finalize()
+{
+
+	// 1. パーティクルグループごとのリソース解放
+	// std::unordered_mapの中に格納された各グループが持っているバッファを解放します
+	for (auto& [name, group] : particleGroups)
+	{
+		group.instancingResource.Reset();
+	}
+	particleGroups.clear();
+
+	// 2. 基本リソースの解放
+	// これらを解放し忘れると "Live Object" エラーになります
+	vertexResource.Reset();
+	materialResource.Reset();
+	graphicsPipelineState.Reset();
+	rootSignature.Reset();
+
+	// 3. 外部ポインタの無効化
+	dxCommon_ = nullptr;
+	srvManager_ = nullptr;
+	camera_ = nullptr;
 
 }
