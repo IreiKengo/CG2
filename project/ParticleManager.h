@@ -120,6 +120,7 @@ private:
 	ParticleManager& operator=(const ParticleManager&) = delete;
 
 
+
 	DirectXCommon* dxCommon_ = nullptr;
 	SrvManager* srvManager_ = nullptr;
 
