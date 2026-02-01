@@ -41,6 +41,8 @@ public:
 
 	void Update();
 
+	void DebugUpdate();
+
 	void Draw();
 
 	//getter
@@ -124,6 +126,8 @@ private:
 	//テクスチャ切り出しサイズ
 	Vector2 textureSize = { 64.0f,64.0f };
 
+	//SRVの切り替え
+	//bool useMonsterBall = false;
 
 	//DirectXCommon
 	DirectXCommon* dxCommon_;

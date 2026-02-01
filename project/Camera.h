@@ -12,6 +12,8 @@ public:
 	void Update();
 	Camera();
 
+	void DebugUpdate();
+
 
 	//getter
 	const Matrix4x4& GetWorldMatrix()const { return worldMatrix; }

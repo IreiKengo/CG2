@@ -4,6 +4,7 @@
 #include "DirectXCommon.h"
 #include "Matrix4x4Math.h"
 #include "TextureManager.h"
+#include "ImguiManger.h"
 
 using namespace math;
 
@@ -13,7 +14,7 @@ void Sprite::Initialize(SpriteCommon* spriteCommon, std::string textureFilePath)
 	//引数で受け取ってメンバ変数に記録する
 	this->spriteCommon = spriteCommon;
 	dxCommon_ = spriteCommon->GetDxCommon();
-	
+
 	textureFilePath_ = textureFilePath;
 
 	CreateVertexData();
@@ -76,7 +77,7 @@ void Sprite::Update()
 	vertexData[3].texCoord = { tex_right,tex_top };
 	vertexData[3].normal = { 0.0f,0.0f,-1.0f };
 
-	
+
 
 	//インデックスリソースにデータを書き込む（6個分）
 	indexData[0] = 0;
@@ -94,6 +95,39 @@ void Sprite::Update()
 	Matrix4x4 projectionMatrix = MakeOrthographicMatrix(0.0f, 0.0f, float(WinApp::kClientWidth), float(WinApp::kClientHeight), 0.0f, 100.0f);
 	transformationMatrixData->WVP = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
 	transformationMatrixData->World = worldMatrix;
+
+}
+
+void Sprite::DebugUpdate()
+{
+#ifdef USE_IMGUI
+
+	ImGui::Begin("SpriteSettings");
+	/*bool prevUseMonsterBall = useMonsterBall;
+	ImGui::Checkbox("Use MonsterBall", &useMonsterBall);
+
+
+	if (prevUseMonsterBall != useMonsterBall)
+	{
+		if (useMonsterBall)
+		{
+			TextureChange("resources/monsterBall.png");
+		} else
+		{
+			TextureChange("resources/uvChecker.png");
+		}
+	}*/
+
+
+	if (ImGui::Checkbox("Flip X", &isFlipX_))
+	{
+		SetIsFlipX(isFlipX_);
+	}
+
+	ImGui::End();
+
+#endif 
+
 
 }
 

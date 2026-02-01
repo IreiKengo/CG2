@@ -34,6 +34,8 @@ public:
 
 	bool CanAllocateTexture();
 
+	ID3D12DescriptorHeap* GetDescriptorHeap() const { return descriptorHeap.Get(); }
+
 
 private:
 

@@ -6,8 +6,7 @@
 #include <format>
 
 
-#include "externals/imgui/imgui_impl_dx12.h"
-#include "externals/imgui/imgui_impl_win32.h"
+
 #include "externals/DirectXTex/d3dx12.h"
 #include <thread>
 #include <strsafe.h>
@@ -59,8 +58,7 @@ void DirectXCommon::Initialize(WinApp* winApp)
 	InitializescissorRect();
 	//DXCコンパイラの生成
 	CreateDXCCompiler();
-	//ImGuiの初期化
-	//InitializeImGui();
+	
 
 }
 
@@ -459,23 +457,6 @@ void DirectXCommon::CreateDXCCompiler()
 	assert(SUCCEEDED(hr));
 
 }
-
-//void DirectXCommon::InitializeImGui()
-//{
-//
-//	//ImGuiの初期化。詳細はさして重要ではないので解説は省略する
-//	IMGUI_CHECKVERSION();
-//	ImGui::CreateContext();
-//	ImGui::StyleColorsDark();
-//	ImGui_ImplWin32_Init(winApp_->GetHwnd());
-//	ImGui_ImplDX12_Init(device.Get(),
-//		swapChainDesc.BufferCount,
-//		rtvFormat_,
-//		srvDescriptorHeap.Get(),
-//		srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
-//		srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-//
-//}
 
 void DirectXCommon::InitializeFixFPS()
 {

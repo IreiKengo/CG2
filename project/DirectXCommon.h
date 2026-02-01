@@ -32,6 +32,9 @@ public:
 	ID3D12Device* GetDevice() const { return device.Get(); }
 	ID3D12GraphicsCommandList* GetCommandList() const { return commandList.Get(); }
 	HANDLE GetFenceEvent()const { return fenceEvent; }
+	ID3D12CommandQueue* GetCommandQueue() const { return commandQueue.Get(); }
+	const DXGI_SWAP_CHAIN_DESC1& GetSwapChainDesc()const { return swapChainDesc; }
+	const DXGI_FORMAT& GetRTVFormat()const { return rtvFormat_; }
 
 	//シェーダーのコンパイル
 	Microsoft::WRL::ComPtr<IDxcBlob> CompileShader(
@@ -66,6 +69,7 @@ private:
 	Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain = nullptr;
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
 	Microsoft::WRL::ComPtr<ID3D12Resource> depthResource = nullptr;
+
 	//深度バッファ
 //	HRESULT hr;
 	//各種デスクリプタサイズ

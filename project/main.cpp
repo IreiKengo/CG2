@@ -36,8 +36,7 @@
 #include "ParticleManager.h"
 #include "ParticleEmitter.h"
 
-#include <externals/imgui/imgui_impl_dx12.h>
-#include <externals/imgui/imgui_impl_win32.h>
+#include "ImguiManger.h"
 
 #include "Transform.h"
 #include "Vector2.h"
@@ -49,6 +48,9 @@
 using namespace StringUtility;
 using namespace Logger;
 using namespace math;
+
+
+
 
 #pragma comment(lib,"Dbghelp.lib")
 
@@ -443,8 +445,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		0.1f                      // 発生頻度
 	);
 
-	//SRVの切り替え
-	bool useMonsterBall = false;
+	
 
 #pragma region Lighting
 
@@ -474,6 +475,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #pragma endregion
 
 
+#pragma region Imguiの初期化
+
+	ImguiManager* imgui = new ImguiManager();
+
+	imgui->Initialize(winApp,dxCommon,srvManager);
+
+#pragma endregion
 
 		Log("文字列リテラルを出力するよ\n");
 		std::string a("stringに埋め込んだ文字列を出力するよ\n");
@@ -494,68 +502,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		
-		////数字の0キーが押されていたら
-		//if (input->TriggerKey(DIK_0))
-		//{
-		//	//音声再生
-		//	//SoundPlayWave(xAudio2.Get(), soundData1);
-		//	OutputDebugStringA("Hit 0\n");
-		//}
 
-		//if (input->PushKey(DIK_D))
-		//{
+		imgui->Begin();
 
-		//	transformObj.translate.x += 0.5f;
-		//}
-
-		//if (input->PushKey(DIK_A))
-		//{
-		//	transformObj.translate.x -= 0.5f;
-		//}
-		//if (input->PushKey(DIK_W))
-		//{
-		//	transformObj.translate.y += 0.5f;
-		//}
-		//if (input->PushKey(DIK_S))
-		//{
-		//	transformObj.translate.y -= 0.5f;
-		//}
-
-
-
-		////transform.rotate.y += 0.03f;
-		////三角形用のWVPMatrixの作成
-		//Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
-		//Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
-		//Matrix4x4 viewMatrix = Inverse(cameraMatrix);
-		//Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(WinApp::kClientWidth) / float(WinApp::kClientHeight), 0.1f, 100.0f);
-		//Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
-		//wvpData->WVP = worldViewProjectionMatrix;
-		//wvpData->World = worldMatrix;
-
-		/*ImGui_ImplDX12_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
-
-		ImGui::Begin("Settings");
-
-		Transform cameraTransform;
-		cameraTransform.rotate = camera->GetRotate();
-		cameraTransform.translate = camera->GetTranslate();
-
-		if (ImGui::DragFloat3("CameraTranslate", &cameraTransform.translate.x,0.1f)) {
-			camera->SetTranslate(cameraTransform.translate);
-		}
-
-		ImGui::SliderAngle("CameraTransRotateX", &cameraTransform.rotate.x, -89.0f, 89.0f);
-		ImGui::SliderAngle("CameraTransRotateY", &cameraTransform.rotate.y, -180.0f, 180.0f);
-		ImGui::SliderAngle("CameraTransRotateZ", &cameraTransform.rotate.z);
-
-		camera->SetRotate(cameraTransform.rotate);
-
-
-
-
+		camera->DebugUpdate();
 
 
 		for (uint32_t i = 0; i < sprites.size(); ++i)
@@ -564,38 +514,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 
+		sprites[0]->DebugUpdate();
 		
-
-
-
-		ImGui::Checkbox("Use MonsterBall", &useMonsterBall);
-
-		for (uint32_t i = 0; i < sprites.size(); ++i)
-		{
-			if (i % 2 == 0)
-			{
-
-
-				if (useMonsterBall)
-				{
-					sprites[i]->TextureChange("resources/monsterBall.png");
-				} else
-				{
-					sprites[i]->TextureChange("resources/uvChecker.png");
-				}
-			}
-		}
-
-
-
-		if (ImGui::Checkbox("Flip X", &flipX))
-		{
-			sprites[0]->SetIsFlipX(flipX);
-		}
-
-
-
-		ImGui::End();*/
 
 		//入力の更新
 		input->Update();
@@ -619,8 +539,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 
-		particleCircle->Update(deltaTime);
-		particleChecker->Update(deltaTime);
+		//particleCircle->Update(deltaTime);
+		//particleChecker->Update(deltaTime);
 		ParticleManager::GetInstance()->Update();
 
 
@@ -628,9 +548,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//ImGui::ShowDemoWindow();
 
 
-		////ImGuiの内部コマンドを生成する
-		//ImGui::Render();
-
+	
+		imgui->End();
 
 
 		//DirectXの描画基準。全ての描画に共通宇のグラッフィックスコマンドを積む
@@ -656,15 +575,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		for (uint32_t i = 0; i < sprites.size(); ++i)
 
 		{
-			//sprites[0]->Draw();
+			sprites[0]->Draw();
 		}
 
 		ParticleManager::GetInstance()->Draw();
 
 
-
-		//実際のdxCommon->GetCommandList()のImGuiの描画コマンドを積む
-		//ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dxCommon->GetCommandList());
+		imgui->Draw();
 
 		//描画後処理
 		dxCommon->PostDraw();
@@ -677,10 +594,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 
-
-	//ImGui_ImplDX12_Shutdown();
-	//ImGui_ImplWin32_Shutdown();
-	//ImGui::DestroyContext();
+	imgui->Finalize();
+	
 
 	//XAudio2解放
 	xAudio2.Reset();
