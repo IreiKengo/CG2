@@ -475,6 +475,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 
+		Log("文字列リテラルを出力するよ\n");
+		std::string a("stringに埋め込んだ文字列を出力するよ\n");
+		Log(a.c_str());
 
 	bool flipX = sprites[0]->GetIsFlipX();
 
@@ -490,7 +493,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			break;
 		}
 
-
+		
 		////数字の0キーが押されていたら
 		//if (input->TriggerKey(DIK_0))
 		//{

@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GE3", "GE3.vcxproj", "{7A9B8452-4207-45A6-81CE-81C8D35BD2FE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F4208D39-9D6A-4876-B148-1E908DF0C9D0} = {F4208D39-9D6A-4876-B148-1E908DF0C9D0}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ソリューション項目", "ソリューション項目", "{2022CB0F-8BAF-F49E-0C48-8EF4C96EC109}"
 	ProjectSection(SolutionItems) = preProject
@@ -14,7 +17,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTex", "externals\Dir
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{DDB4EF12-CC4E-5E88-E6FC-71A802F4DE97}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "imgui", "imgui", "{E439351D-2C14-4FB7-A13C-73ED41B5BF0A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imgui", "externals\imgui\imgui.vcxproj", "{F4208D39-9D6A-4876-B148-1E908DF0C9D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,12 +38,15 @@ Global
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Development|x64.Build.0 = Development|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x64.ActiveCfg = Development|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x64.Build.0 = Development|x64
+		{F4208D39-9D6A-4876-B148-1E908DF0C9D0}.Debug|x64.ActiveCfg = Debug|x64
+		{F4208D39-9D6A-4876-B148-1E908DF0C9D0}.Debug|x64.Build.0 = Debug|x64
+		{F4208D39-9D6A-4876-B148-1E908DF0C9D0}.Development|x64.ActiveCfg = Release|x64
+		{F4208D39-9D6A-4876-B148-1E908DF0C9D0}.Development|x64.Build.0 = Release|x64
+		{F4208D39-9D6A-4876-B148-1E908DF0C9D0}.Release|x64.ActiveCfg = Release|x64
+		{F4208D39-9D6A-4876-B148-1E908DF0C9D0}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{E439351D-2C14-4FB7-A13C-73ED41B5BF0A} = {DDB4EF12-CC4E-5E88-E6FC-71A802F4DE97}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {86A0C1EE-3F9B-4B2F-82B0-F647091CA939}
