@@ -512,7 +512,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		sprites[0]->DebugUpdate();
 
 
-		ImGui::ShowDemoWindow();
+		//ImGui::ShowDemoWindow();
 		imgui->End();
 
 
