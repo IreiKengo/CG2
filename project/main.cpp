@@ -16,7 +16,7 @@
 
 #include "vector"
 #include <numbers>
-#include <xaudio2.h>
+
 
 #include "Input.h"
 #include "WinApp.h"
@@ -37,6 +37,7 @@
 #include "ParticleEmitter.h"
 
 #include "ImguiManger.h"
+#include "Sound.h"
 
 #include "Transform.h"
 #include "Vector2.h"
@@ -50,49 +51,8 @@ using namespace Logger;
 using namespace math;
 
 
-
-
 #pragma comment(lib,"Dbghelp.lib")
 
-#pragma comment(lib,"xaudio2.lib")
-
-
-
-#pragma region 型
-
-//チャンクヘッダ
-struct ChunkHeader
-{
-	char id[4];//チャンク毎のID
-	int32_t size;//チャンクサイズ
-};
-
-//RIFFヘッダチャンク
-struct RiffHeader
-{
-	ChunkHeader chunk;//"RIFF"
-	char type[4];//"WAVE"
-};
-
-//FMTチャンク
-struct FormatChunk
-{
-	ChunkHeader chunk;//"fmt"
-	WAVEFORMATEX fmt;//波形フォーマット
-};
-
-//音声データ
-struct SoundData
-{
-	//波形フォーマット
-	WAVEFORMATEX wfex;
-	//バッファの先頭アドレス
-	BYTE* pBuffer;
-	//バッファのサイズ
-	unsigned int bufferSize;
-};
-
-#pragma endregion 
 
 
 static LONG WINAPI ExportDump(EXCEPTION_POINTERS* exception)
@@ -119,118 +79,6 @@ static LONG WINAPI ExportDump(EXCEPTION_POINTERS* exception)
 }
 
 
-SoundData SoundLoadWavw(const char* filename)
-{
-	//①ファイルオープン
-
-	//ファイル入力ストリームのインスタンス
-	std::ifstream file;
-	//.wavファイルをバイナリモードで開く
-	file.open(filename, std::ios_base::binary);
-	//ファイルオープン失敗を検出する
-	assert(file.is_open());
-
-	//②.wavデータ読み込み
-
-	//RIFFヘッダーの読み込み
-	RiffHeader riff;
-	file.read((char*)&riff, sizeof(riff));
-	//ファイルがRIFFかチェック
-	if (strncmp(riff.chunk.id, "RIFF", 4) != 0)
-	{
-		assert(0);
-	}
-	//タイプがWAVEかチェック
-	if (strncmp(riff.type, "WAVE", 4) != 0)
-	{
-		assert(0);
-	}
-
-	//Formatチャンクの読み込み
-	FormatChunk format = {};
-	//チャンクヘッダーの確認
-	file.read((char*)&format, sizeof(ChunkHeader));
-	if (strncmp(format.chunk.id, "fmt ", 4) != 0)
-	{
-		assert(0);
-	}
-
-	//チャンク本体の読み込み
-	assert(format.chunk.size <= sizeof(format.fmt));
-	file.read((char*)&format.fmt, format.chunk.size);
-
-	//Dataチャンクの読み込み
-	ChunkHeader data;
-	file.read((char*)&data, sizeof(data));
-	//JUNKチャンクを検出した場合
-	if (strncmp(data.id, "JUNK", 4) == 0)
-	{
-		//読み取り位置をJUNKチャンクの終わりまで進める
-		file.seekg(data.size, std::ios_base::cur);
-		//再読み込み
-		file.read((char*)&data, sizeof(data));
-	}
-
-	if (strncmp(data.id, "data", 4) != 0)
-	{
-		assert(0);
-	}
-
-	//Dataチャンクのデータ部（波形データ）の読み込み
-	char* pBuffer = new char[data.size];
-	file.read(pBuffer, data.size);
-
-	//③ファイルクローズ
-
-	//Waveファイルを閉じる
-	file.close();
-
-	//④読み込んだ音声データをreturn
-
-	//returnする音声データ
-	SoundData soundData = {};
-
-	soundData.wfex = format.fmt;
-	soundData.pBuffer = reinterpret_cast<BYTE*>(pBuffer);
-	soundData.bufferSize = data.size;
-
-	return soundData;
-
-}
-
-//音声データ解放
-void SoundUnload(SoundData* soundData)
-{
-	//バッファのメモリを解放
-	delete[] soundData->pBuffer;
-
-	soundData->pBuffer = 0;
-	soundData->bufferSize = 0;
-	soundData->wfex = {};
-}
-
-//音声再生
-void SoundPlayWave(IXAudio2* xAudio2, const SoundData& soundData)
-{
-	HRESULT result;
-
-	//波形フォーマットを元にSoundVoiceを生成
-	IXAudio2SourceVoice* pSourceVoice = nullptr;
-	result = xAudio2->CreateSourceVoice(&pSourceVoice, &soundData.wfex);
-	assert(SUCCEEDED(result));
-
-	//再生する波形データの設定
-	XAUDIO2_BUFFER buf{};
-	buf.pAudioData = soundData.pBuffer;
-	buf.AudioBytes = soundData.bufferSize;
-	buf.Flags = XAUDIO2_END_OF_STREAM;
-
-	//波形データの再生
-	result = pSourceVoice->SubmitSourceBuffer(&buf);
-	result = pSourceVoice->Start();
-
-}
-
 #pragma endregion
 
 //Windowsアプリでのエントリーポイント(main関数)
@@ -238,9 +86,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 
 	D3DResourceLeakChecker leakCheck;
-
-
-
 
 	SetUnhandledExceptionFilter(ExportDump);
 
@@ -262,9 +107,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//ファイルを使って書き込み準備
 	std::ofstream logStream(logFilePath);
 
-
-	//uint32_t* p = nullptr;
-	//*p = 100;
 
 #pragma region WindowsAPIの初期化
 
@@ -291,7 +133,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 	HRESULT result;
-
 
 
 #pragma region DirectInputの初期化
@@ -341,6 +182,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//テクスチャマネージャの初期化
 	TextureManager::GetInstance()->Initialize(dxCommon,srvManager);
 
+#pragma endregion
+
+#pragma region Sound
+	
+	Sound* sound = new Sound();
+
+	sound->Initialize("resources/fanfare.wav");
 
 #pragma endregion
 
@@ -352,15 +200,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 #pragma endregion
-
-
-
-	//Textureを読んで転送する
-	//TextureManager::GetInstance()->LoadTexture("resources/uvChecker.png");
-
-	//２枚目のTextureを読んで転送する
-	//TextureManager::GetInstance()->LoadTexture("resources/monsterBall.png");
-
 
 #pragma region スプライトの初期化
 
@@ -383,7 +222,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 #pragma endregion
-
 
 #pragma region 最初のシーンの初期化
 
@@ -445,8 +283,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		0.1f                      // 発生頻度
 	);
 
-	
-
 #pragma region Lighting
 
 
@@ -454,26 +290,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	////平行光源の切り替え	
 	bool useLighting = false;
 #pragma endregion
-
-#pragma region Sound
-	Microsoft::WRL::ComPtr<IXAudio2> xAudio2;
-	IXAudio2MasteringVoice* masterVoice;
-
-	//XAudioエンジンのインデックスを生成
-
-	result = XAudio2Create(&xAudio2, 0, XAUDIO2_DEFAULT_PROCESSOR);
-	assert(SUCCEEDED(result));
-
-	//マスターボイスを生成
-	result = xAudio2->CreateMasteringVoice(&masterVoice);
-	assert(SUCCEEDED(result));
-
-	//音声読み込み
-	SoundData soundData1 = SoundLoadWavw("resources/fanfare.wav");
-
-
-#pragma endregion
-
 
 #pragma region Imguiの初期化
 
@@ -487,9 +303,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		std::string a("stringに埋め込んだ文字列を出力するよ\n");
 		Log(a.c_str());
 
-	bool flipX = sprites[0]->GetIsFlipX();
-
-	
 
 	//ウィンドウの×ボタンが押されるまでループ
 	while (true)
@@ -503,8 +316,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			break;
 		}
 
-		
-
 		imgui->Begin();
 
 		camera->DebugUpdate();
@@ -515,18 +326,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//ImGui::ShowDemoWindow();
 		imgui->End();
 
-
-
-
 		/////////// Update /////////////
 
-		/*for (uint32_t i = 0; i < sprites.size(); ++i)
-		{
-			sprites[i]->SetPosition(Vector2{ 0.0f + i * 200.0f,0.0f });
-		}*/
 
 		//入力の更新
 		input->Update();
+
+		if (input->TriggerKey(DIK_W))
+		{
+			sound->SoundPlayWave();
+		}
+
 
 		//カメラの更新
 		camera->Update();
@@ -595,15 +405,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	CloseHandle(dxCommon->GetFenceEvent());
 
-
-
 	imgui->Finalize();
 	
 
-	//XAudio2解放
-	xAudio2.Reset();
-	//音声データ解放
-	SoundUnload(&soundData1);
+	
+
+	
 
 	delete particleChecker;
 	particleChecker = nullptr;
@@ -637,7 +444,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	delete srvManager;
 
 	delete object3dCommon;
-
 
 	//SpriteCommon解放
 	delete spriteCommon;

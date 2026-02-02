@@ -106,7 +106,7 @@ Model::ModelData Model::LoadObjFile(const std::string& directoryPath, const std:
 			Vector4 position;
 			s >> position.x >> position.y >> position.z;
 			position.w = 1.0f;
-			position.x *= -1.0f;
+			position.x *= -1.0f;//左手座標系に変換
 			positions.push_back(position);
 		} else if (identifier == "vt")
 		{
