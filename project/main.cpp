@@ -489,6 +489,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	bool flipX = sprites[0]->GetIsFlipX();
 
+	
+
 	//ウィンドウの×ボタンが押されるまでループ
 	while (true)
 	{
@@ -507,15 +509,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		camera->DebugUpdate();
 
+		sprites[0]->DebugUpdate();
 
-		for (uint32_t i = 0; i < sprites.size(); ++i)
+
+		ImGui::ShowDemoWindow();
+		imgui->End();
+
+
+
+
+		/////////// Update /////////////
+
+		/*for (uint32_t i = 0; i < sprites.size(); ++i)
 		{
 			sprites[i]->SetPosition(Vector2{ 0.0f + i * 200.0f,0.0f });
-		}
-
-
-		sprites[0]->DebugUpdate();
-		
+		}*/
 
 		//入力の更新
 		input->Update();
@@ -544,12 +552,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		ParticleManager::GetInstance()->Update();
 
 
-		////開発用UIの処理。実際に開発用のUIを出す場合はここをゲーム固有の処理に書き換える
-		//ImGui::ShowDemoWindow();
-
-
-	
-		imgui->End();
+		/////////// Draw /////////////
 
 
 		//DirectXの描画基準。全ての描画に共通宇のグラッフィックスコマンドを積む

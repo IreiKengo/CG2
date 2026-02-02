@@ -93,7 +93,7 @@ private:
 	//バッファリソース内のデータを指すポインタ
 	TransformationMatrix* transformationMatrixData = nullptr;
 
-	Transform transform;;
+	Transform transform;
 
 	Transform uvTransformSprite
 	{
@@ -104,7 +104,7 @@ private:
 
 
 	//座標
-	Vector2 position = { 0.0f,0.0f };
+	Vector2 position = { 100.0f,100.0f };
 	//回転
 	float rotation = 0.0f;
 	//サイズ

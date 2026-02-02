@@ -101,7 +101,7 @@ void Sprite::Update()
 void Sprite::DebugUpdate()
 {
 #ifdef USE_IMGUI
-
+	ImGui::SetNextWindowSize(ImVec2(500, 100), ImGuiCond_FirstUseEver);
 	ImGui::Begin("SpriteSettings");
 	/*bool prevUseMonsterBall = useMonsterBall;
 	ImGui::Checkbox("Use MonsterBall", &useMonsterBall);
@@ -119,9 +119,12 @@ void Sprite::DebugUpdate()
 	}*/
 
 
-	if (ImGui::Checkbox("Flip X", &isFlipX_))
+	
+
+	if (ImGui::SliderFloat2("position", &transform.translate.x, 0.0f, 1280.0f,"%.1f"))
 	{
-		SetIsFlipX(isFlipX_);
+		SetPosition({ transform.translate.x,transform.translate.y });
+
 	}
 
 	ImGui::End();
