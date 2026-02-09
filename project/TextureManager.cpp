@@ -127,8 +127,9 @@ uint32_t TextureManager::GetSrvIndex(const std::string& filePath)
 
 D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSrvHandleGPU(const std::string& filePath)
 {
-
+	//検索
 	auto it = textureDatas.find(filePath);
+
 	assert(it != textureDatas.end());
 	return it->second.srvHandleGPU;
 }

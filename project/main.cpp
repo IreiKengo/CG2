@@ -376,7 +376,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//全てのObject3d個々の描画
 		for (uint32_t i = 0; i < objects.size(); ++i)
 		{
-			//objects[i]->Draw();
+			objects[i]->Draw();
 
 		}
 
@@ -388,7 +388,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		for (uint32_t i = 0; i < sprites.size(); ++i)
 
 		{
-			sprites[0]->Draw();
+			//sprites[0]->Draw();
 		}
 
 		ParticleManager::GetInstance()->Draw();
