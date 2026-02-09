@@ -2,6 +2,7 @@
 #include "xaudio2.h"
 #include <fstream>
 #include <wrl.h>
+#include <vector>
 
 class Sound
 {
@@ -34,18 +35,19 @@ public:
 	{
 		//波形フォーマット
 		WAVEFORMATEX wfex;
-		//バッファの先頭アドレス
-		std::unique_ptr<BYTE[]> pBuffer;
-		//バッファのサイズ
-		unsigned int bufferSize;
+		//バッファ
+		std::vector<BYTE> buffer;
 	};
 
-	~Sound();
+	void Finalize();
 
 	//音声再生
 	void SoundPlayWave();
 
 	void Initialize(const char* filename);
+
+	//音声データ解放
+	void SoundUnload();
 
 private:
 
@@ -55,6 +57,6 @@ private:
 	SoundData soundData;
 	IXAudio2SourceVoice* sourceVoice = nullptr;
 
-	//音声読み込み
-	SoundData SoundLoadWave(const char* filename);
+	//音声読み込み（wav,mp3,aacなど）
+	SoundData SoundLoadFile(const std::string& filename);
 };

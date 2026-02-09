@@ -188,7 +188,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	
 	Sound* sound = new Sound();
 
-	sound->Initialize("resources/fanfare.wav");
+	sound->Initialize("resources/fanfare.mp3");
 
 #pragma endregion
 
@@ -405,13 +405,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	CloseHandle(dxCommon->GetFenceEvent());
 
+
+	sound->SoundUnload();
+	sound->Finalize();
+
+
 	imgui->Finalize();
 	
-
-	
-
-	
-
 	delete particleChecker;
 	particleChecker = nullptr;
 
