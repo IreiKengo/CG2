@@ -132,7 +132,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	);
 
 
-	HRESULT result;
+	
 
 
 #pragma region DirectInputの初期化
